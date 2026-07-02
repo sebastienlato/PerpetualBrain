@@ -17,7 +17,7 @@ Electron is an additional desktop runtime. It hosts the same built Vite frontend
 In Electron:
 
 1. `electron/main.ts` resolves the active brain root.
-2. Electron starts `createApiApp({ brainRoot })` on `127.0.0.1`.
+2. Electron starts `createApiApp({ getBrainRoot })` on `127.0.0.1`.
 3. `electron/preload.ts` exposes only the API base URL and platform metadata.
 4. The renderer uses the same `ApiBrainStorage` and `/api` routes as browser mode.
 
@@ -71,7 +71,7 @@ The desktop app uses a secure Electron shell:
 - minimal preload bridge
 - external links opened through the system browser
 
-Development loads the Vite dev server and uses the repo-local `brain/` folder. Production loads `dist/index.html` from the packaged app and uses a writable user data brain folder.
+Development loads the Vite dev server and uses the repo-local `brain/` folder by default. Production loads `dist/index.html` from the packaged app and uses a writable user data brain folder by default.
 
 Release metadata lives in `package.json`:
 
@@ -98,6 +98,35 @@ On macOS, the default packaged location is:
 ```
 
 The API reports this path through `GET /api/health`, and Settings displays it when file-system mode is active.
+
+## Custom Brain Folders
+
+Electron desktop mode supports selecting a custom brain folder from Settings. Browser mode does not expose this capability.
+
+Security model:
+
+- The renderer calls a minimal preload bridge method: `chooseBrainFolder()`.
+- Electron main opens the native macOS folder picker.
+- Electron main validates the selected folder and persists the selected path.
+- The renderer never receives arbitrary filesystem primitives.
+- The API continues to validate every read/write path against the active brain root.
+
+The selected folder is stored in:
+
+```text
+~/Library/Application Support/PerpetualBrain/settings.json
+```
+
+On startup, Electron loads that settings file. If the saved folder exists, it becomes the active brain root. If it was deleted or moved, Electron falls back to the default Application Support brain folder and reports that fallback through `/api/health`.
+
+Folder initialization:
+
+- Empty folder: the user can initialize it with seed brain files, use it empty, or cancel.
+- Existing brain folder: folders containing `projects`, `global`, `templates`, or root Markdown files are used without overwriting.
+- Mixed folder: Electron warns that the folder does not look like a brain folder and asks for confirmation.
+- Existing user files are never overwritten when seed files are copied.
+
+Recommended operating model: use a Git-tracked folder as the custom brain root so Markdown changes are versioned outside the app.
 
 ## Desktop Commands
 

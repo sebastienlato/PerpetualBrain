@@ -14,13 +14,19 @@ export function BrainProvider({ children }: { children: ReactNode }) {
   const [storageMessage, setStorageMessage] = useState('Detecting local file API...')
   const [activeBrainPath, setActiveBrainPath] = useState<string>()
 
+  function fileSystemMessage(health: { brainRootMessage?: string }) {
+    return health.brainRootMessage
+      ? `File system mode. Markdown files save directly to the active brain folder. ${health.brainRootMessage}`
+      : 'File system mode. Markdown files save directly to the active brain folder.'
+  }
+
   const initialize = useCallback(async () => {
     setLoading(true)
     try {
       const health = await apiBrainStorage.health()
       setStorage(apiBrainStorage)
       setStorageMode('api')
-      setStorageMessage('File system mode. Markdown files save directly to /brain.')
+      setStorageMessage(fileSystemMessage(health))
       setActiveBrainPath(health.brainRoot)
       setFiles(await apiBrainStorage.listFiles())
       setError(undefined)
@@ -68,10 +74,15 @@ export function BrainProvider({ children }: { children: ReactNode }) {
   }, [storage])
 
   const reloadFromSource = useCallback(async () => {
+    if (storageMode === 'api') {
+      const health = await apiBrainStorage.health()
+      setActiveBrainPath(health.brainRoot)
+      setStorageMessage(fileSystemMessage(health))
+    }
     const nextFiles = await storage.listFiles()
     setFiles(nextFiles)
     return nextFiles
-  }, [storage])
+  }, [storage, storageMode])
 
   const resetToSeed = useCallback(async () => {
     setFiles(await storage.resetToSeed())

@@ -21,7 +21,7 @@ export class ApiBrainStorage implements BrainStorage {
     if (!response.ok) {
       throw new Error('File persistence API is unavailable.')
     }
-    return response.json() as Promise<{ ok: boolean; mode: string; brainRoot: string }>
+    return response.json() as Promise<{ ok: boolean; mode: string; brainRoot: string; brainRootSource?: string; brainRootMessage?: string }>
   }
 
   async listFiles() {

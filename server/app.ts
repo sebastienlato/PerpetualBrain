@@ -5,12 +5,21 @@ import { FileSystemBrainStorage } from './storage/FileSystemBrainStorage.js'
 import { BrainPathError } from './utils/brainPath.js'
 
 export interface CreateApiAppOptions {
-  brainRoot: string
+  brainRoot?: string
+  getBrainRoot?: () => string
+  getBrainRootSource?: () => string
+  getBrainRootMessage?: () => string | undefined
 }
 
-export function createApiApp({ brainRoot }: CreateApiAppOptions) {
+export function createApiApp({ brainRoot, getBrainRoot, getBrainRootSource, getBrainRootMessage }: CreateApiAppOptions) {
   const app = express()
-  const storage = new FileSystemBrainStorage(brainRoot)
+  const resolveBrainRoot = getBrainRoot ?? (() => {
+    if (!brainRoot) {
+      throw new Error('A brain root is required.')
+    }
+    return brainRoot
+  })
+  const storage = () => new FileSystemBrainStorage(resolveBrainRoot())
 
   app.use(cors({ origin: true }))
   app.use(express.json({ limit: '1mb', type: 'application/json' }))
@@ -33,13 +42,15 @@ export function createApiApp({ brainRoot }: CreateApiAppOptions) {
     res.json({
       ok: true,
       mode: 'file-system',
-      brainRoot,
+      brainRoot: resolveBrainRoot(),
+      brainRootSource: getBrainRootSource?.(),
+      brainRootMessage: getBrainRootMessage?.(),
     })
   })
 
   app.get('/api/brain/tree', async (_req, res, next) => {
     try {
-      res.json({ files: await storage.listFiles() })
+      res.json({ files: await storage().listFiles() })
     } catch (error) {
       next(error)
     }
@@ -48,7 +59,7 @@ export function createApiApp({ brainRoot }: CreateApiAppOptions) {
   app.get('/api/brain/file', async (req, res, next) => {
     try {
       const { path: filePath } = pathQuerySchema.parse(req.query)
-      res.json({ file: await storage.getFile(filePath) })
+      res.json({ file: await storage().getFile(filePath) })
     } catch (error) {
       next(error)
     }
@@ -57,7 +68,7 @@ export function createApiApp({ brainRoot }: CreateApiAppOptions) {
   app.put('/api/brain/file', async (req, res, next) => {
     try {
       const { path: filePath, content } = writeFileSchema.parse(req.body)
-      res.json({ file: await storage.saveFile(filePath, content) })
+      res.json({ file: await storage().saveFile(filePath, content) })
     } catch (error) {
       next(error)
     }
@@ -66,7 +77,7 @@ export function createApiApp({ brainRoot }: CreateApiAppOptions) {
   app.post('/api/brain/file', async (req, res, next) => {
     try {
       const input = writeFileSchema.parse(req.body)
-      res.status(201).json({ file: await storage.createFile(input) })
+      res.status(201).json({ file: await storage().createFile(input) })
     } catch (error) {
       next(error)
     }
@@ -75,7 +86,7 @@ export function createApiApp({ brainRoot }: CreateApiAppOptions) {
   app.post('/api/brain/project', async (req, res, next) => {
     try {
       const input = createProjectSchema.parse(req.body)
-      res.status(201).json(await storage.createProject(input))
+      res.status(201).json(await storage().createProject(input))
     } catch (error) {
       next(error)
     }
@@ -84,7 +95,7 @@ export function createApiApp({ brainRoot }: CreateApiAppOptions) {
   app.delete('/api/brain/file', async (req, res, next) => {
     try {
       const { path: filePath } = pathQuerySchema.parse(req.query)
-      await storage.deleteFile(filePath)
+      await storage().deleteFile(filePath)
       res.json({ ok: true })
     } catch (error) {
       next(error)

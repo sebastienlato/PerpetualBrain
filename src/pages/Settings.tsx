@@ -1,4 +1,4 @@
-import { MonitorCog, RefreshCw, RotateCcw } from 'lucide-react'
+import { FolderOpen, MonitorCog, RefreshCw, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
@@ -23,6 +23,30 @@ export function Settings() {
   async function reload() {
     await reloadFromSource()
     setStatus(storageMode === 'api' ? 'Reloaded latest Markdown files from disk.' : 'Reloaded browser fallback storage.')
+  }
+
+  async function chooseBrainFolder() {
+    if (!desktopRuntime?.chooseBrainFolder) {
+      setStatus('Custom folder selection is available in the desktop app.')
+      return
+    }
+
+    const result = await desktopRuntime.chooseBrainFolder()
+    if (!result.canceled) {
+      await reloadFromSource()
+    }
+    setStatus(result.message || (result.canceled ? 'Folder selection canceled.' : 'Brain folder updated.'))
+  }
+
+  async function resetBrainFolder() {
+    if (!desktopRuntime?.resetBrainFolder) {
+      setStatus('Custom folder selection is available in the desktop app.')
+      return
+    }
+
+    const result = await desktopRuntime.resetBrainFolder()
+    await reloadFromSource()
+    setStatus(result.message || 'Reset to the default brain folder.')
   }
 
   return (
@@ -71,12 +95,30 @@ export function Settings() {
           <p className="mt-2 text-sm leading-6 text-slate-400">
             macOS builds store writable brain files in <span className="font-mono text-slate-300">~/Library/Application Support/PerpetualBrain/brain</span>. On first launch, seed files are copied there only if the folder does not already exist.
           </p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Recommended: use a Git-tracked folder for your brain so changes are versioned and easy to back up.
+          </p>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <Button icon={<RefreshCw size={16} />} onClick={() => void reload()}>Reload From Disk</Button>
+          <Button
+            icon={<FolderOpen size={16} />}
+            onClick={() => void chooseBrainFolder()}
+            disabled={!desktopRuntime?.chooseBrainFolder}
+          >
+            Choose Brain Folder
+          </Button>
+          <Button
+            icon={<RotateCcw size={16} />}
+            onClick={() => void resetBrainFolder()}
+            disabled={!desktopRuntime?.resetBrainFolder}
+          >
+            Reset Default Folder
+          </Button>
           {storageMode === 'localStorage' ? <Button icon={<RotateCcw size={16} />} variant="danger" onClick={reset}>Reset Seed Data</Button> : null}
           <span className="text-sm text-slate-500">{files.length} files currently loaded</span>
         </div>
+        {!desktopRuntime ? <p className="mt-3 text-sm text-slate-500">Custom folder selection is available in the desktop app.</p> : null}
         {status ? <p className="mt-3 text-sm text-teal-100">{status}</p> : null}
       </Card>
     </div>

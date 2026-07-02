@@ -11,7 +11,7 @@
     "dev": "concurrently -n api,web -c cyan,green \"npm:dev:api\" \"npm:dev:web\"",
     "dev:web": "vite",
     "dev:api": "tsx watch server/index.ts",
-    "electron:compile": "rm -rf dist-electron && tsc -p tsconfig.electron.json",
+    "electron:compile": "rm -rf dist-electron && tsc -p tsconfig.electron.json && cp electron/preload.cjs dist-electron/electron/preload.cjs",
     "electron:dev": "concurrently -k -n web,electron -c green,magenta \"npm:dev:web\" \"wait-on http://localhost:5173 && npm run electron:compile && electron .\"",
     "electron:pack": "npm run build && npm run electron:compile && electron-builder --dir",
     "electron:build": "npm run build && npm run electron:compile && electron-builder",
