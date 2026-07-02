@@ -8,7 +8,10 @@ PerpetualBrain is a structured AI context system. Preserve the distinction betwe
 
 - Keep TypeScript strict and do not relax compiler settings to hide errors.
 - Keep persistence behind `BrainStorage`.
+- Prefer `ApiBrainStorage` for real local persistence and preserve `LocalStorageBrainStorage` only as fallback/demo mode.
 - Keep Markdown files as the primary portable data format.
+- Server writes must stay inside `/brain`, allow only `.md`, reject path traversal, and validate API input with Zod.
+- Do not bypass the storage adapter from pages. Use provider actions for save, create, delete, reload, and project creation.
 - Keep parser and bundle logic in `src/utils` instead of embedding it in page components.
 - Use reusable components from `src/components` for buttons, cards, badges, Markdown rendering, copy actions, and empty states.
 - Keep UI dense, polished, dark-mode first, and devtool-oriented.
@@ -20,9 +23,10 @@ Before handing off changes, run the smallest relevant checks:
 ```bash
 npm run build
 npm test
+npm run typecheck
 ```
 
-For visual changes, start the Vite dev server and inspect the affected routes in a browser.
+For file persistence changes, run `npm run dev` and manually verify disk writes in `/brain`.
 
 ## Scope
 

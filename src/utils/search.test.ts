@@ -13,4 +13,8 @@ describe('searchBrain', () => {
   it('returns no results for empty queries', () => {
     expect(searchBrain(fixtureFiles, '')).toEqual([])
   })
+
+  it('normalizes markdown punctuation in query terms', () => {
+    expect(searchBrain(fixtureFiles, 'Phaser_platformer')[0]?.file.id).toBe('project')
+  })
 })

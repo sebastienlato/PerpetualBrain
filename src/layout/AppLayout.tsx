@@ -32,7 +32,7 @@ const navItems = [
 ]
 
 export function AppLayout() {
-  const { loading, error, files } = useBrain()
+  const { loading, error, files, storageMode, storageMessage } = useBrain()
   const location = useLocation()
 
   return (
@@ -80,9 +80,9 @@ export function AppLayout() {
             Source
           </div>
           <p className="mt-2 text-sm text-slate-300">{files.length || 0} Markdown files loaded</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Seeded from `/brain`, persisted to browser storage for Phase 1.</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{storageMode === 'api' ? 'Reading and writing Markdown files in /brain.' : 'Using browser localStorage fallback.'}</p>
           <div className="mt-3 flex gap-2">
-            <Badge tone="cyan">local</Badge>
+            <Badge tone={storageMode === 'api' ? 'cyan' : 'gold'}>{storageMode === 'api' ? 'file system' : 'fallback'}</Badge>
             <Badge>markdown</Badge>
           </div>
         </div>
@@ -90,14 +90,22 @@ export function AppLayout() {
 
       <main className="min-w-0 px-4 py-5 md:px-7 lg:px-9 lg:py-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2.5 text-xs text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-            <div className="flex min-w-0 items-center gap-2">
-              <PenTool className="shrink-0 text-teal-200/80" size={14} />
-              <span className="truncate">Current workspace: {labelForPath(location.pathname)}</span>
+          <div className="mb-5 grid gap-2">
+            {storageMode === 'localStorage' ? (
+              <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm leading-6 text-amber-100">
+                {storageMessage}
+              </div>
+            ) : null}
+            <div className="flex min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2.5 text-xs text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <PenTool className="shrink-0 text-teal-200/80" size={14} />
+                <span className="truncate">Current workspace: {labelForPath(location.pathname)}</span>
+                <Badge className="hidden sm:inline-flex" tone={storageMode === 'api' ? 'cyan' : 'gold'}>{storageMode === 'api' ? 'File system mode' : 'Browser fallback mode'}</Badge>
+              </div>
+              <NavLink to="/search" className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-slate-300 transition hover:bg-white/[0.06] hover:text-white">
+                Search <ChevronRight size={14} />
+              </NavLink>
             </div>
-            <NavLink to="/search" className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-slate-300 transition hover:bg-white/[0.06] hover:text-white">
-              Search <ChevronRight size={14} />
-            </NavLink>
           </div>
 
           {loading ? <LoadingState /> : error ? <ErrorPanel message={error} /> : <Outlet />}

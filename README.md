@@ -10,9 +10,10 @@ The app is intentionally not a generic notes app. It is organized around the con
 - React
 - TypeScript
 - Tailwind CSS
-- Markdown source files under `/brain`
-- Browser localStorage persistence for Phase 1
-- Storage adapter boundary for future Electron or Node-backed file writes
+- Express local API
+- Zod API validation
+- Markdown files under `/brain` as the source of truth
+- Browser localStorage fallback when the API is unavailable
 
 ## Run Locally
 
@@ -21,15 +22,45 @@ npm install
 npm run dev
 ```
 
-Then open the local URL printed by Vite.
+`npm run dev` starts the local file API and Vite frontend together.
+
+Useful split commands:
+
+```bash
+npm run dev:api
+npm run dev:web
+```
 
 ## Quality Checks
 
 ```bash
-npm run build
-npm test
 npm run lint
+npm test
+npm run typecheck
+npm run build
 ```
+
+## Storage Behavior
+
+The app prefers file-system mode:
+
+1. Frontend calls `/api/health`.
+2. If the local API is available, `ApiBrainStorage` reads and writes Markdown files in `/brain`.
+3. If the API is unavailable, the app shows a fallback banner and uses `LocalStorageBrainStorage`.
+
+In file-system mode, editor saves, project creation, file creation, file deletion, and Context Builder exports write to disk.
+
+## API Routes
+
+- `GET /api/health`
+- `GET /api/brain/tree`
+- `GET /api/brain/file?path=brain/projects/example-project/PROJECT.md`
+- `PUT /api/brain/file`
+- `POST /api/brain/file`
+- `POST /api/brain/project`
+- `DELETE /api/brain/file?path=brain/projects/example-project/TODO.md`
+
+All write paths are validated server-side. The API only permits `.md` files inside `/brain` and rejects path traversal and binary content.
 
 ## What Is Included
 
@@ -37,19 +68,19 @@ npm run lint
 - `/brain` Markdown structure with realistic seed content
 - ShadowSpire example project
 - Project pages with summary, tech stack, status, files, tasks, issues, decisions, lessons, and Codex readiness
-- Markdown editor with edit/preview modes, save flow, and copy buttons
-- Search across title, content, tags, project paths, prompts, decisions, and templates
+- Markdown editor with edit/preview modes, disk-backed save flow, delete confirmation, and copy buttons
+- Search across latest loaded brain content
 - Prompt library with editable/copyable reusable prompts
 - Decision log parsed from project Markdown tables
 - Lessons page for recurring project-specific rules
-- Context Bundle Generator for copy-ready Codex context
+- Context Bundle Generator with `CODEX_CONTEXT.md` export
 - Global standards and templates pages
-- Settings page with local seed reset
-- Basic Vitest coverage for search and bundle generation
+- Settings page with storage mode, reload from disk, and fallback reset
+- Vitest coverage for search, bundle generation, path safety, and file-backed storage
 
 ## Brain Folder
 
-The seeded knowledge base lives here:
+The knowledge base lives here:
 
 ```text
 brain/
@@ -75,17 +106,6 @@ brain/
     BUG_REPORT_TEMPLATE.md
 ```
 
-Vite imports these files as raw Markdown on first load. Edits made in the app are persisted to browser localStorage in Phase 1.
+## Known Limitation
 
-## Phase 1 Storage Limitation
-
-Browser-only Vite apps cannot write directly to arbitrary local files without using browser file-picker APIs or a local backend. This implementation keeps Markdown as the seed source of truth and provides:
-
-- `LocalStorageBrainStorage` as the active Phase 1 adapter
-- `FileSystemBrainStorage` as the explicit placeholder for an Electron or Node-backed adapter
-
-The UI and domain logic depend on the `BrainStorage` interface, so later file-system persistence can be added without rewriting pages.
-
-## Recommended Next Phase
-
-Add a Node or Electron-backed file adapter that reads and writes the `/brain` Markdown files directly, then add project creation from templates without requiring browser prompts.
+This is a local development app. The file API is intentionally bound to `127.0.0.1` and is meant for trusted local use against this repo’s `/brain` directory.

@@ -1,5 +1,5 @@
-import { FileCheck2, Sparkles } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { FileCheck2, Save, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { CopyButton } from '../components/CopyButton'
@@ -8,12 +8,13 @@ import { FilePicker } from '../components/FilePicker'
 import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
 import type { ContextBundleOptions } from '../types/brain'
-import { getPromptTemplates } from '../utils/brain'
+import { buildProjects, getFileByCategory, getPromptTemplates } from '../utils/brain'
 import { generateContextBundle } from '../utils/contextBundle'
 
 export function ContextBuilder() {
-  const { files, projects } = useBrain()
+  const { files, projects, reloadFromSource, saveFile, createFile } = useBrain()
   const prompts = useMemo(() => getPromptTemplates(files), [files])
+  const [exportStatus, setExportStatus] = useState<string>()
   const defaultProjectId = projects[0]?.id ?? ''
   const [options, setOptions] = useState<ContextBundleOptions>({
     projectId: defaultProjectId,
@@ -31,6 +32,10 @@ export function ContextBuilder() {
   const selectedIds = options.fileIds.length ? options.fileIds : relevantFiles.filter((file) => ['PROJECT.md', 'ARCHITECTURE.md', 'DESIGN_RULES.md', 'CODEX_CONTEXT.md', 'DECISIONS.md', 'LESSONS.md', 'CODING_STANDARDS.md', 'DESIGN_STANDARDS.md'].includes(file.name)).map((file) => file.id)
   const bundle = generateContextBundle({ ...options, fileIds: selectedIds }, files, projects, prompts)
 
+  useEffect(() => {
+    void reloadFromSource()
+  }, [reloadFromSource])
+
   function update<K extends keyof ContextBundleOptions>(key: K, value: ContextBundleOptions[K]) {
     setOptions((current) => ({ ...current, [key]: value }))
   }
@@ -39,14 +44,52 @@ export function ContextBuilder() {
     return <EmptyState title="No projects available" body="Create a project brain first so the context builder has a target." />
   }
 
+  async function exportCodexContext() {
+    if (!selectedProject) {
+      return
+    }
+
+    try {
+      const latestFiles = await reloadFromSource()
+      const latestProjects = buildProjects(latestFiles)
+      const latestPrompts = getPromptTemplates(latestFiles)
+      const latestBundle = generateContextBundle({ ...options, fileIds: selectedIds }, latestFiles, latestProjects, latestPrompts)
+      const existing = getFileByCategory(latestFiles, selectedProject.id, 'CODEX_CONTEXT')
+
+      if (existing) {
+        await saveFile({ ...existing, content: latestBundle })
+      } else {
+        await createFile({
+          path: `brain/projects/${selectedProject.id}/CODEX_CONTEXT.md`,
+          title: `Codex Context for ${selectedProject.name}`,
+          kind: 'project',
+          category: 'CODEX_CONTEXT',
+          projectId: selectedProject.id,
+          content: latestBundle,
+        })
+      }
+
+      setExportStatus('Exported CODEX_CONTEXT.md to disk.')
+      window.setTimeout(() => setExportStatus(undefined), 1800)
+    } catch (error) {
+      setExportStatus(error instanceof Error ? error.message : 'Unable to export CODEX_CONTEXT.md.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Context Builder"
         title="Generate Codex-ready project bundles"
         description="Select project memory, standards, decisions, lessons, and a prompt template, then copy a clean structured context bundle into Codex."
-        actions={<CopyButton label="Copy Bundle" value={bundle} />}
+        actions={
+          <>
+            <Button icon={<Save size={16} />} onClick={() => void exportCodexContext()}>Export CODEX_CONTEXT.md</Button>
+            <CopyButton label="Copy Bundle" value={bundle} />
+          </>
+        }
       />
+      {exportStatus ? <div className="rounded-lg border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm text-teal-100">{exportStatus}</div> : null}
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
         <div className="min-w-0 space-y-5">

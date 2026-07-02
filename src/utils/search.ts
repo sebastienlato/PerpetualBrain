@@ -2,7 +2,7 @@ import type { BrainFile, SearchResult } from '../types/brain'
 import { plainText } from './markdown'
 
 export function searchBrain(files: BrainFile[], query: string): SearchResult[] {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
+  const terms = plainText(query).toLowerCase().split(/\s+/).filter(Boolean)
   if (terms.length === 0) {
     return []
   }

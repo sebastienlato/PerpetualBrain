@@ -1,6 +1,6 @@
-import { CheckCircle, Eye, FileText, PenLine, Save } from 'lucide-react'
+import { AlertCircle, CheckCircle, Eye, FileText, PenLine, Save, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { CopyButton } from '../components/CopyButton'
@@ -11,17 +11,20 @@ import { useBrain } from '../hooks/useBrain'
 
 export function FileEditor() {
   const { fileId } = useParams()
-  const { files, saveFile } = useBrain()
+  const navigate = useNavigate()
+  const { files, saveFile, deleteFile } = useBrain()
   const file = files.find((item) => item.id === fileId)
   const [draft, setDraft] = useState(file?.content ?? '')
   const [mode, setMode] = useState<'edit' | 'preview'>('edit')
-  const [saved, setSaved] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [saveError, setSaveError] = useState<string>()
 
   const isDirty = useMemo(() => file ? draft !== file.content : false, [draft, file])
 
   useEffect(() => {
     setDraft(file?.content ?? '')
-    setSaved(false)
+    setSaveStatus('idle')
+    setSaveError(undefined)
   }, [file?.id, file?.content])
 
   if (!file) {
@@ -31,9 +34,30 @@ export function FileEditor() {
   const currentFile = file
 
   async function handleSave() {
-    await saveFile({ ...currentFile, content: draft })
-    setSaved(true)
-    window.setTimeout(() => setSaved(false), 1400)
+    setSaveStatus('saving')
+    setSaveError(undefined)
+    try {
+      await saveFile({ ...currentFile, content: draft })
+      setSaveStatus('saved')
+      window.setTimeout(() => setSaveStatus('idle'), 1400)
+    } catch (error) {
+      setSaveStatus('error')
+      setSaveError(error instanceof Error ? error.message : 'Unable to save file.')
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete ${currentFile.path}? This removes the Markdown file from the active storage adapter.`)) {
+      return
+    }
+
+    try {
+      await deleteFile(currentFile)
+      navigate(currentFile.projectId ? `/projects/${currentFile.projectId}` : '/')
+    } catch (error) {
+      setSaveStatus('error')
+      setSaveError(error instanceof Error ? error.message : 'Unable to delete file.')
+    }
   }
 
   return (
@@ -46,9 +70,10 @@ export function FileEditor() {
           <>
             {file.projectId ? <Link className="inline-flex min-h-10 items-center rounded-lg border border-white/10 bg-white/[0.07] px-3.5 py-2 text-sm font-semibold text-slate-100" to={`/projects/${file.projectId}`}>Project</Link> : null}
             <CopyButton value={draft} />
-            <Button icon={saved ? <CheckCircle size={16} /> : <Save size={16} />} variant={isDirty ? 'primary' : 'secondary'} onClick={() => void handleSave()}>
-              {saved ? 'Saved' : 'Save'}
+            <Button icon={saveStatus === 'saved' ? <CheckCircle size={16} /> : saveStatus === 'error' ? <AlertCircle size={16} /> : <Save size={16} />} variant={isDirty ? 'primary' : 'secondary'} disabled={saveStatus === 'saving'} onClick={() => void handleSave()}>
+              {saveStatus === 'saving' ? 'Saving' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}
             </Button>
+            <Button icon={<Trash2 size={16} />} variant="danger" onClick={() => void handleDelete()}>Delete</Button>
           </>
         }
       />
@@ -61,9 +86,10 @@ export function FileEditor() {
           </div>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/45 px-3 py-1 text-xs text-slate-400">
             <FileText size={13} />
-            {isDirty ? 'Unsaved changes' : `Saved ${new Date(file.updatedAt).toLocaleString()}`}
+            {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'error' ? 'Save failed' : isDirty ? 'Unsaved changes' : `Saved ${new Date(file.updatedAt).toLocaleString()}`}
           </span>
         </div>
+        {saveError ? <div className="border-b border-rose-300/20 bg-rose-500/10 px-4 py-2 text-sm text-rose-100">{saveError}</div> : null}
         {mode === 'edit' ? (
           <textarea
             className="min-h-[38rem] w-full resize-y border-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.82),rgba(15,23,42,0.72))] p-5 font-mono text-[0.92rem] leading-7 text-slate-100 outline-none placeholder:text-slate-600 md:p-6"

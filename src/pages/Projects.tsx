@@ -1,5 +1,6 @@
 import { ArrowRight, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -8,7 +9,28 @@ import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
 
 export function Projects() {
-  const { projects } = useBrain()
+  const { projects, createProject } = useBrain()
+  const navigate = useNavigate()
+  const [isCreating, setIsCreating] = useState(false)
+  const [projectName, setProjectName] = useState('')
+  const [error, setError] = useState<string>()
+
+  async function handleNewProject() {
+    if (!projectName.trim()) {
+      setError('Project name is required.')
+      return
+    }
+
+    try {
+      const result = await createProject({ name: projectName.trim() })
+      setProjectName('')
+      setIsCreating(false)
+      setError(undefined)
+      navigate(`/projects/${result.slug}`)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Unable to create project.')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -16,8 +38,38 @@ export function Projects() {
         eyebrow="Projects"
         title="Project memory hubs"
         description="Each project keeps architecture notes, design rules, decisions, active tasks, lessons, and copyable Codex context together."
-        actions={<Button icon={<Plus size={16} />} onClick={() => alert('Create from the project template in Phase 1 by adding a project Markdown file from a project page.')}>New Project</Button>}
+        actions={<Button icon={<Plus size={16} />} onClick={() => setIsCreating(true)}>New Project</Button>}
       />
+
+      {isCreating ? (
+        <Card className="p-5 md:p-6">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <label className="grid gap-2 text-sm font-medium text-slate-300">
+              Project name
+              <input
+                autoFocus
+                className="min-h-11 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none placeholder:text-slate-600 focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
+                placeholder="Example: My AI App"
+                value={projectName}
+                onChange={(event) => setProjectName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    void handleNewProject()
+                  }
+                  if (event.key === 'Escape') {
+                    setIsCreating(false)
+                  }
+                }}
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button>
+              <Button variant="primary" icon={<Plus size={16} />} onClick={() => void handleNewProject()}>Create Project</Button>
+            </div>
+          </div>
+          {error ? <p className="mt-3 text-sm text-rose-100">{error}</p> : null}
+        </Card>
+      ) : null}
 
       {projects.length === 0 ? (
         <EmptyState title="No projects yet" body="Add a project folder under /brain/projects or create one when the file-system adapter lands." />
