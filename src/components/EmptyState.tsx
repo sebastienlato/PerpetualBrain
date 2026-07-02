@@ -1,10 +1,14 @@
 import type { ReactNode } from 'react'
+import { SearchX } from 'lucide-react'
 import { Card } from './Card'
 
 export function EmptyState({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
   return (
-    <Card className="flex min-h-48 flex-col items-center justify-center p-8 text-center">
-      <h2 className="text-lg font-semibold text-white">{title}</h2>
+    <Card className="flex min-h-56 flex-col items-center justify-center p-8 text-center">
+      <span className="grid size-12 place-items-center rounded-lg border border-teal-300/20 bg-teal-300/10 text-teal-100">
+        <SearchX size={22} />
+      </span>
+      <h2 className="mt-4 text-lg font-semibold text-white">{title}</h2>
       <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{body}</p>
       {action ? <div className="mt-5">{action}</div> : null}
     </Card>

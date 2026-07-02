@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Globe2 } from 'lucide-react'
 import { Card } from '../components/Card'
 import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
@@ -17,10 +18,15 @@ export function GlobalBrain() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {globalFiles.map((file) => (
           <Link key={file.id} to={`/files/${file.id}`}>
-            <Card className="h-full p-5 transition hover:border-teal-300/30 hover:bg-teal-300/8">
-              <h2 className="text-lg font-semibold text-white">{file.title}</h2>
+            <Card className="group h-full p-5 transition hover:border-teal-300/30 hover:bg-teal-300/8">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-teal-200">
+                  <Globe2 size={18} />
+                </span>
+                <h2 className="text-lg font-semibold text-white">{file.title}</h2>
+              </div>
               <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-400">{file.content.replace(/^#\s+.+\n*/, '').trim()}</p>
-              <p className="mt-4 text-xs text-slate-500">{file.path}</p>
+              <p className="mt-4 border-t border-white/10 pt-3 text-xs text-slate-500">{file.path}</p>
             </Card>
           </Link>
         ))}

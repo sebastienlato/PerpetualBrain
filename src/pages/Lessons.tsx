@@ -1,3 +1,4 @@
+import { Lightbulb } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/Card'
 import { EmptyState } from '../components/EmptyState'
@@ -19,12 +20,17 @@ export function Lessons() {
           {lessonFiles.map((file) => {
             const project = projects.find((item) => item.id === file.projectId)
             return (
-              <Card key={file.id} className="p-5">
+              <Card key={file.id} className="p-5 md:p-6">
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold text-white">{project?.name ?? file.title}</h2>
-                  <Link className="text-sm text-teal-200 hover:text-teal-100" to={`/files/${file.id}`}>Edit</Link>
+                  <div className="flex items-center gap-3">
+                    <span className="grid size-10 place-items-center rounded-lg border border-amber-300/18 bg-amber-300/10 text-amber-100">
+                      <Lightbulb size={18} />
+                    </span>
+                    <h2 className="text-lg font-semibold text-white">{project?.name ?? file.title}</h2>
+                  </div>
+                  <Link className="rounded-md px-2 py-1 text-sm text-teal-200 transition hover:bg-teal-300/10 hover:text-teal-100" to={`/files/${file.id}`}>Edit</Link>
                 </div>
-                <div className="mt-4">
+                <div className="mt-5 rounded-lg border border-white/10 bg-slate-950/30 p-4">
                   <MarkdownView content={file.content.replace(/^#\s+.+\n*/, '')} />
                 </div>
               </Card>

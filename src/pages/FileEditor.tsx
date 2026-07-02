@@ -1,4 +1,4 @@
-import { CheckCircle, Eye, PenLine, Save } from 'lucide-react'
+import { CheckCircle, Eye, FileText, PenLine, Save } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
@@ -54,22 +54,25 @@ export function FileEditor() {
       />
 
       <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-3 border-b border-white/10 bg-white/[0.025] px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap gap-2">
             <Button icon={<PenLine size={16} />} variant={mode === 'edit' ? 'primary' : 'ghost'} onClick={() => setMode('edit')}>Edit</Button>
             <Button icon={<Eye size={16} />} variant={mode === 'preview' ? 'primary' : 'ghost'} onClick={() => setMode('preview')}>Preview</Button>
           </div>
-          <span className="text-xs text-slate-500">{isDirty ? 'Unsaved changes' : `Saved ${new Date(file.updatedAt).toLocaleString()}`}</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/45 px-3 py-1 text-xs text-slate-400">
+            <FileText size={13} />
+            {isDirty ? 'Unsaved changes' : `Saved ${new Date(file.updatedAt).toLocaleString()}`}
+          </span>
         </div>
         {mode === 'edit' ? (
           <textarea
-            className="min-h-[34rem] w-full resize-y border-0 bg-slate-950/60 p-5 font-mono text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-600"
+            className="min-h-[38rem] w-full resize-y border-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.82),rgba(15,23,42,0.72))] p-5 font-mono text-[0.92rem] leading-7 text-slate-100 outline-none placeholder:text-slate-600 md:p-6"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             spellCheck={false}
           />
         ) : (
-          <div className="min-h-[34rem] p-5">
+          <div className="min-h-[38rem] bg-slate-950/28 p-5 md:p-6">
             <MarkdownView content={draft} />
           </div>
         )}

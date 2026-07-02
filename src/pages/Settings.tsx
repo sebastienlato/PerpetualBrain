@@ -16,10 +16,10 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <PageHeader eyebrow="Settings" title="Local brain storage" description="Phase 1 uses the Markdown files under /brain as seed data, then persists edits in browser localStorage." />
-      <Card className="p-5">
+      <Card className="p-5 md:p-6">
         <h2 className="text-lg font-semibold text-white">Storage Adapter</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-teal-300/25 bg-teal-300/10 p-4">
+          <div className="rounded-lg border border-teal-300/25 bg-teal-300/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <p className="text-sm font-semibold text-teal-50">LocalStorageBrainStorage</p>
             <p className="mt-2 text-sm leading-6 text-teal-100/75">Active adapter. Supports create, edit, save, search, and bundle generation in the browser.</p>
           </div>

@@ -20,6 +20,7 @@
 
 html {
   background: #070a12;
+  color-scheme: dark;
 }
 
 body {
@@ -27,9 +28,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(94, 234, 212, 0.12), transparent 34rem),
-    radial-gradient(circle at 80% 0%, rgba(248, 214, 109, 0.1), transparent 28rem),
-    linear-gradient(135deg, #070a12 0%, #0d1320 48%, #121621 100%);
+    radial-gradient(circle at 8% 0%, rgba(94, 234, 212, 0.14), transparent 30rem),
+    radial-gradient(circle at 84% 8%, rgba(248, 214, 109, 0.09), transparent 28rem),
+    radial-gradient(circle at 42% 90%, rgba(96, 165, 250, 0.08), transparent 34rem),
+    linear-gradient(135deg, #070a12 0%, #0b1020 46%, #121621 100%);
   color: #e5e7eb;
   font-family: var(--font-sans);
   font-synthesis: none;
@@ -38,11 +40,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black 0%, transparent 76%);
+  pointer-events: none;
+}
+
 button,
 input,
 select,
 textarea {
   font: inherit;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
 }
 
 button {
@@ -57,8 +78,29 @@ button:disabled {
   background: rgba(94, 234, 212, 0.28);
 }
 
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.55);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid rgba(2, 6, 23, 0.55);
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 234, 212, 0.45);
+}
+
 .markdown-body {
   color: #cbd5e1;
+  font-size: 0.94rem;
+  line-height: 1.72;
 }
 
 .markdown-body h1,
@@ -71,13 +113,16 @@ button:disabled {
 
 .markdown-body h1 {
   margin-bottom: 1rem;
-  font-size: 1.65rem;
+  font-size: 1.7rem;
+  line-height: 1.18;
 }
 
 .markdown-body h2 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 1.15rem;
+  margin-top: 1.65rem;
+  margin-bottom: 0.7rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 1.1rem;
+  font-size: 1.08rem;
 }
 
 .markdown-body h3 {
@@ -90,7 +135,7 @@ button:disabled {
 .markdown-body ul,
 .markdown-body ol,
 .markdown-body table {
-  margin-bottom: 1rem;
+  margin-bottom: 1.05rem;
 }
 
 .markdown-body ul,
@@ -100,21 +145,23 @@ button:disabled {
 
 .markdown-body li {
   margin-bottom: 0.35rem;
+  padding-left: 0.15rem;
 }
 
 .markdown-body code {
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 0.35rem;
-  background: rgba(15, 23, 42, 0.78);
+  background: rgba(2, 6, 23, 0.76);
   padding: 0.1rem 0.35rem;
   color: #a7f3d0;
+  font-size: 0.86em;
 }
 
 .markdown-body pre {
   overflow: auto;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(94, 234, 212, 0.16);
   border-radius: 0.75rem;
-  background: rgba(2, 6, 23, 0.72);
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.92), rgba(15, 23, 42, 0.72));
   padding: 1rem;
 }
 
@@ -127,13 +174,17 @@ button:disabled {
 
 .markdown-body th,
 .markdown-body td {
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  padding: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  padding: 0.7rem;
   text-align: left;
   vertical-align: top;
 }
 
 .markdown-body th {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(30, 41, 59, 0.78);
   color: #f8fafc;
+}
+
+.markdown-body tr:nth-child(even) td {
+  background: rgba(15, 23, 42, 0.28);
 }

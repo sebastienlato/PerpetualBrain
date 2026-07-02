@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { FileCheck2, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -48,25 +48,33 @@ export function ContextBuilder() {
         actions={<CopyButton label="Copy Bundle" value={bundle} />}
       />
 
-      <div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
-        <div className="space-y-5">
-          <Card className="p-5">
-            <h2 className="text-lg font-semibold text-white">Bundle Inputs</h2>
-            <div className="mt-4 grid gap-4">
-              <label className="grid gap-2 text-sm font-medium text-slate-300">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+        <div className="min-w-0 space-y-5">
+          <Card className="p-5 md:p-6">
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 place-items-center rounded-lg border border-teal-300/18 bg-teal-300/10 text-teal-200">
+                <Sparkles size={18} />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-white">Bundle Inputs</h2>
+                <p className="text-xs text-slate-500">Goal, task, acceptance criteria, and prompt framing.</p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4">
+              <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
                 Project
                 <select
-                  className="min-h-11 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none"
+                  className="min-h-11 min-w-0 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
                   value={options.projectId}
                   onChange={(event) => setOptions((current) => ({ ...current, projectId: event.target.value, fileIds: [] }))}
                 >
                   {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
                 </select>
               </label>
-              <label className="grid gap-2 text-sm font-medium text-slate-300">
+              <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
                 Prompt Template
                 <select
-                  className="min-h-11 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none"
+                  className="min-h-11 min-w-0 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
                   value={options.promptTemplateId}
                   onChange={(event) => update('promptTemplateId', event.target.value)}
                 >
@@ -79,9 +87,14 @@ export function ContextBuilder() {
             </div>
           </Card>
 
-          <Card className="p-5">
+          <Card className="p-5 md:p-6">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-white">Included Files</h2>
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-slate-300">
+                  <FileCheck2 size={18} />
+                </span>
+                <h2 className="text-lg font-semibold text-white">Included Files</h2>
+              </div>
               <Button icon={<Sparkles size={16} />} onClick={() => update('fileIds', relevantFiles.map((file) => file.id))}>Select All</Button>
             </div>
             <p className="mt-2 text-sm leading-6 text-slate-400">{selectedProject?.name} files plus global standards. Defaults include the core project context.</p>
@@ -91,15 +104,15 @@ export function ContextBuilder() {
           </Card>
         </div>
 
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <div>
+        <Card className="overflow-hidden xl:sticky xl:top-8 xl:self-start">
+          <div className="flex flex-col gap-3 border-b border-white/10 bg-white/[0.025] px-4 py-3 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold text-white">Codex Context Bundle</h2>
               <p className="text-xs text-slate-500">{bundle.length.toLocaleString()} characters</p>
             </div>
             <CopyButton label="Copy" value={bundle} />
           </div>
-          <pre className="max-h-[58rem] overflow-auto whitespace-pre-wrap bg-slate-950/72 p-5 text-sm leading-6 text-slate-200">{bundle}</pre>
+          <pre className="max-h-[58rem] overflow-auto whitespace-pre-wrap bg-[linear-gradient(180deg,rgba(2,6,23,0.88),rgba(15,23,42,0.74))] p-5 font-mono text-[0.82rem] leading-6 text-slate-200 md:p-6">{bundle}</pre>
         </Card>
       </div>
     </div>
@@ -108,10 +121,10 @@ export function ContextBuilder() {
 
 function TextArea({ label, value, onChange, rows = 3 }: { label: string; value: string; onChange(value: string): void; rows?: number }) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-slate-300">
+    <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
       {label}
       <textarea
-        className="resize-y rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-slate-600"
+        className="min-w-0 resize-y rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
         rows={rows}
         value={value}
         onChange={(event) => onChange(event.target.value)}

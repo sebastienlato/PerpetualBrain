@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { FileStack } from 'lucide-react'
 import { Card } from '../components/Card'
 import { CopyButton } from '../components/CopyButton'
 import { PageHeader } from '../components/PageHeader'
@@ -15,14 +16,19 @@ export function Templates() {
         {templates.map((file) => (
           <Card key={file.id} className="p-5">
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-teal-200">
+                  <FileStack size={18} />
+                </span>
+                <div className="min-w-0">
                 <h2 className="text-lg font-semibold text-white">{file.title}</h2>
-                <p className="mt-1 text-xs text-slate-500">{file.path}</p>
+                <p className="mt-1 truncate text-xs text-slate-500">{file.path}</p>
+                </div>
               </div>
               <CopyButton value={file.content} />
             </div>
-            <p className="mt-4 line-clamp-6 whitespace-pre-line text-sm leading-6 text-slate-400">{file.content.replace(/^#\s+.+\n*/, '').trim()}</p>
-            <Link className="mt-4 inline-flex text-sm text-teal-200 hover:text-teal-100" to={`/files/${file.id}`}>Open template</Link>
+            <p className="mt-4 line-clamp-6 whitespace-pre-line rounded-lg border border-white/10 bg-slate-950/30 p-4 text-sm leading-6 text-slate-400">{file.content.replace(/^#\s+.+\n*/, '').trim()}</p>
+            <Link className="mt-4 inline-flex rounded-md px-2 py-1 text-sm text-teal-200 transition hover:bg-teal-300/10 hover:text-teal-100" to={`/files/${file.id}`}>Open template</Link>
           </Card>
         ))}
       </div>

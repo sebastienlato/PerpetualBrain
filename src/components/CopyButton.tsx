@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { copyToClipboard } from '../utils/copy'
 import { Button } from './Button'
 
-export function CopyButton({ value, label = 'Copy' }: { value: string; label?: string }) {
+export function CopyButton({ value, label = 'Copy', className }: { value: string; label?: string; className?: string }) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -13,7 +13,7 @@ export function CopyButton({ value, label = 'Copy' }: { value: string; label?: s
   }
 
   return (
-    <Button type="button" onClick={handleCopy} icon={copied ? <Check size={16} /> : <Copy size={16} />} variant={copied ? 'primary' : 'secondary'}>
+    <Button className={className} type="button" onClick={handleCopy} icon={copied ? <Check size={16} /> : <Copy size={16} />} variant={copied ? 'primary' : 'secondary'}>
       {copied ? 'Copied' : label}
     </Button>
   )

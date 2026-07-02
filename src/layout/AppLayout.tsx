@@ -14,9 +14,10 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Badge } from '../components/Badge'
+import { LoadingState } from '../components/LoadingState'
 import { useBrain } from '../hooks/useBrain'
 import { cn } from '../utils/cn'
-import { LoadingState } from '../components/LoadingState'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,19 +36,19 @@ export function AppLayout() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[18rem_1fr]">
-      <aside className="border-b border-white/10 bg-ink-950/88 px-4 py-4 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
-        <NavLink to="/" className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <span className="grid size-10 place-items-center rounded-lg border border-teal-300/25 bg-teal-300/12 text-teal-100">
+    <div className="min-h-screen lg:grid lg:grid-cols-[18.5rem_1fr]">
+      <aside className="border-b border-white/10 bg-ink-950/88 px-4 py-4 shadow-[12px_0_50px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+        <NavLink to="/" className="group flex items-center gap-3 rounded-lg px-2 py-2">
+          <span className="grid size-11 place-items-center rounded-lg border border-teal-300/25 bg-teal-300/12 text-teal-100 shadow-[0_0_32px_rgba(45,212,191,0.14)] transition group-hover:border-teal-200/45">
             <BookOpen size={20} />
           </span>
-          <span>
-            <span className="block text-base font-bold text-white">PerpetualBrain</span>
-            <span className="block text-xs text-slate-500">Open Brain for Codex</span>
+          <span className="min-w-0">
+            <span className="block text-base font-bold tracking-normal text-white">PerpetualBrain</span>
+            <span className="block truncate text-xs text-slate-500">Open Brain for Codex</span>
           </span>
         </NavLink>
 
-        <nav className="mt-5 grid grid-cols-2 gap-1 lg:grid-cols-1">
+        <nav className="mt-5 grid grid-cols-2 gap-1.5 lg:grid-cols-1">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -55,15 +56,20 @@ export function AppLayout() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
+                  'group relative flex min-h-10 items-center gap-3 rounded-lg border px-3 py-2 text-sm font-medium transition duration-200',
                   isActive
-                    ? 'border border-teal-300/20 bg-teal-300/10 text-white'
-                    : 'border border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-100',
+                    ? 'border-teal-300/24 bg-teal-300/12 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
+                    : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.06] hover:text-slate-100',
                 )
               }
             >
-              <item.icon size={17} />
-              <span className="truncate">{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <span className={cn('absolute left-0 top-2 bottom-2 w-0.5 rounded-full transition', isActive ? 'bg-teal-200' : 'bg-transparent')} />
+                  <item.icon className={cn('transition', isActive ? 'text-teal-200' : 'text-slate-500 group-hover:text-slate-300')} size={17} />
+                  <span className="truncate">{item.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -75,17 +81,21 @@ export function AppLayout() {
           </div>
           <p className="mt-2 text-sm text-slate-300">{files.length || 0} Markdown files loaded</p>
           <p className="mt-1 text-xs leading-5 text-slate-500">Seeded from `/brain`, persisted to browser storage for Phase 1.</p>
+          <div className="mt-3 flex gap-2">
+            <Badge tone="cyan">local</Badge>
+            <Badge>markdown</Badge>
+          </div>
         </div>
       </aside>
 
       <main className="min-w-0 px-4 py-5 md:px-7 lg:px-9 lg:py-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-5 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2 text-xs text-slate-400">
-            <div className="flex items-center gap-2">
-              <PenTool size={14} />
+          <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2.5 text-xs text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="flex min-w-0 items-center gap-2">
+              <PenTool className="shrink-0 text-teal-200/80" size={14} />
               <span className="truncate">Current workspace: {labelForPath(location.pathname)}</span>
             </div>
-            <NavLink to="/search" className="inline-flex items-center gap-1 text-slate-300 hover:text-white">
+            <NavLink to="/search" className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-slate-300 transition hover:bg-white/[0.06] hover:text-white">
               Search <ChevronRight size={14} />
             </NavLink>
           </div>
