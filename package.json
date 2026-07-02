@@ -3,13 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/electron/main.js",
   "scripts": {
     "dev": "concurrently -n api,web -c cyan,green \"npm:dev:api\" \"npm:dev:web\"",
     "dev:web": "vite",
     "dev:api": "tsx watch server/index.ts",
+    "electron:compile": "rm -rf dist-electron && tsc -p tsconfig.electron.json",
+    "electron:dev": "concurrently -k -n web,electron -c green,magenta \"npm:dev:web\" \"wait-on http://localhost:5173 && npm run electron:compile && electron .\"",
+    "electron:pack": "npm run build && npm run electron:compile && electron-builder --dir",
+    "electron:build": "npm run build && npm run electron:compile && electron-builder",
+    "dist:mac": "npm run build && npm run electron:compile && electron-builder --mac",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "lint": "oxlint",
+    "lint": "oxlint --ignore-pattern dist --ignore-pattern dist-electron --ignore-pattern release",
     "preview": "vite preview",
     "test": "vitest run"
   },
@@ -35,11 +41,39 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "concurrently": "^10.0.3",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.71.0",
     "tailwindcss": "^4.3.2",
     "tsx": "^4.22.5",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "appId": "com.perpetualbrain.desktop",
+    "productName": "PerpetualBrain",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "brain",
+        "to": "brain-seed"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    }
   }
 }

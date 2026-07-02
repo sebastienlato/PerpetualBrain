@@ -4,17 +4,27 @@
 
 PerpetualBrain is a Vite React app backed by a small local Express API. Markdown files in `/brain` are the source of truth when the API is running. The browser app talks to the API through `ApiBrainStorage`; if the API is unavailable, it falls back to `LocalStorageBrainStorage` and shows a clear banner.
 
+Electron is an additional desktop runtime. It hosts the same built Vite frontend, starts or connects to the same local API, and keeps the renderer on the existing storage adapter boundary.
+
 ## Data Flow
 
 1. Markdown files live under `/brain`.
 2. `server/storage/FileSystemBrainStorage.ts` walks the brain tree and converts Markdown files into typed `BrainFile` records.
-3. `server/index.ts` exposes validated `/api` routes for tree reads, file reads, writes, creates, deletes, and project creation.
+3. `server/app.ts` creates the Express API and `server/index.ts` starts it for browser development.
 4. `BrainProvider` probes `/api/health`, selects `ApiBrainStorage` or `LocalStorageBrainStorage`, then exposes storage actions to pages.
 5. Pages use provider actions and domain utilities in `src/utils` to parse project sections, decisions, prompts, search results, and context bundles.
+
+In Electron:
+
+1. `electron/main.ts` resolves the active brain root.
+2. Electron starts `createApiApp({ brainRoot })` on `127.0.0.1`.
+3. `electron/preload.ts` exposes only the API base URL and platform metadata.
+4. The renderer uses the same `ApiBrainStorage` and `/api` routes as browser mode.
 
 ## Key Directories
 
 ```text
+electron/        Electron main and preload entrypoints
 server/           Local Express API and file-system storage
 src/components/   Reusable UI primitives and shared controls
 src/data/         Browser seed Markdown import for fallback mode
@@ -27,6 +37,7 @@ src/utils/        Markdown parsing, search, bundle generation, copy helpers
 src/test/         Test fixtures
 brain/            Portable Markdown knowledge base
 docs/             Project documentation
+dist-electron/    Generated Electron build output
 ```
 
 ## Storage Boundary
@@ -46,6 +57,49 @@ interface BrainStorage {
 ```
 
 `ApiBrainStorage` is preferred. `LocalStorageBrainStorage` remains a fallback if the backend is unavailable.
+
+## Electron Runtime
+
+The desktop app uses a secure Electron shell:
+
+- `contextIsolation: true`
+- `nodeIntegration: false`
+- `sandbox: true`
+- no remote module
+- minimal preload bridge
+- external links opened through the system browser
+
+Development loads the Vite dev server and uses the repo-local `brain/` folder. Production loads `dist/index.html` from the packaged app and uses a writable user data brain folder.
+
+## Desktop Brain Seeding
+
+The packaged app includes the repo `brain/` folder as `brain-seed` through `electron-builder` `extraResources`.
+
+On first packaged launch:
+
+1. Electron resolves `app.getPath('userData')/brain`.
+2. If that folder does not exist, the bundled `brain-seed` is copied into it.
+3. If the folder already exists, the seed copy is skipped so user files are not overwritten.
+
+On macOS, the default packaged location is:
+
+```text
+~/Library/Application Support/perpetualbrain/brain
+```
+
+The API reports this path through `GET /api/health`, and Settings displays it when file-system mode is active.
+
+## Desktop Commands
+
+```bash
+npm run electron:dev
+npm run electron:compile
+npm run electron:pack
+npm run electron:build
+npm run dist:mac
+```
+
+`electron:pack` creates an unpacked app under `release/`. `dist:mac` creates macOS distributables under `release/`.
 
 ## API Routes
 
@@ -78,3 +132,9 @@ The Context Builder can also export the generated bundle directly to:
 ```text
 brain/projects/<project-slug>/CODEX_CONTEXT.md
 ```
+
+## Known Limitations
+
+- Desktop signing and notarization are not configured yet.
+- The current desktop icon is a temporary placeholder.
+- Packaged builds use the default Application Support brain folder; custom brain-folder selection is planned for a later phase.

@@ -1,9 +1,9 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import type { BrainFile, BrainFileKind } from '../../src/types/brain'
-import { titleFromMarkdown } from '../../src/utils/markdown'
-import { createProjectTemplates } from '../templates/projectTemplates'
-import { BrainPathError, resolveBrainFilePath, safeProjectSlug } from '../utils/brainPath'
+import type { BrainFile, BrainFileKind } from '../types/brain'
+import { createProjectTemplates } from '../templates/projectTemplates.js'
+import { BrainPathError, resolveBrainFilePath, safeProjectSlug } from '../utils/brainPath.js'
+import { titleFromMarkdown } from '../utils/markdown.js'
 
 export interface CreateBrainFileInput {
   path: string

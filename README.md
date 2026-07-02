@@ -12,6 +12,8 @@ The app is intentionally not a generic notes app. It is organized around the con
 - Tailwind CSS
 - Express local API
 - Zod API validation
+- Electron desktop shell
+- electron-builder packaging
 - Markdown files under `/brain` as the source of truth
 - Browser localStorage fallback when the API is unavailable
 
@@ -31,6 +33,29 @@ npm run dev:api
 npm run dev:web
 ```
 
+## Desktop App
+
+Electron is an additional runtime on top of the existing web app. It does not replace the browser workflow.
+
+```bash
+npm run electron:dev
+```
+
+Development mode starts Vite, compiles the Electron shell, opens a 1440x900 desktop window, and runs the same Express API against the repo-local `brain/` folder.
+
+Packaging commands:
+
+```bash
+npm run electron:pack
+npm run electron:build
+npm run dist:mac
+```
+
+- `electron:pack` creates an unpacked macOS app for local QA.
+- `dist:mac` creates macOS distributables under `release/`.
+- The current icon is a temporary SVG placeholder in `build/icon.svg`; replace it with final `.icns` artwork before distribution.
+- Notarization/signing are not configured yet.
+
 ## Quality Checks
 
 ```bash
@@ -49,6 +74,22 @@ The app prefers file-system mode:
 3. If the API is unavailable, the app shows a fallback banner and uses `LocalStorageBrainStorage`.
 
 In file-system mode, editor saves, project creation, file creation, file deletion, and Context Builder exports write to disk.
+
+## Desktop Brain Folder
+
+Browser development mode uses the repo-local folder:
+
+```text
+brain/
+```
+
+Packaged macOS builds use a writable user data folder:
+
+```text
+~/Library/Application Support/perpetualbrain/brain
+```
+
+On first packaged launch, Electron copies the bundled seed brain files into that folder if it does not already exist. Existing user brain files are never overwritten by the seed copy. The Settings page shows the active brain path reported by the local API.
 
 ## API Routes
 
@@ -109,3 +150,5 @@ brain/
 ## Known Limitation
 
 This is a local development app. The file API is intentionally bound to `127.0.0.1` and is meant for trusted local use against this repo’s `/brain` directory.
+
+Packaged desktop builds currently use the default Application Support brain folder. A UI for choosing a custom brain folder is intentionally left for a later phase.

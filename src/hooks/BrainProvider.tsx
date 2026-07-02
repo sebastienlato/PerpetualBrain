@@ -12,20 +12,23 @@ export function BrainProvider({ children }: { children: ReactNode }) {
   const [storage, setStorage] = useState<BrainStorage>(localBrainStorage)
   const [storageMode, setStorageMode] = useState<StorageMode>('localStorage')
   const [storageMessage, setStorageMessage] = useState('Detecting local file API...')
+  const [activeBrainPath, setActiveBrainPath] = useState<string>()
 
   const initialize = useCallback(async () => {
     setLoading(true)
     try {
-      await apiBrainStorage.health()
+      const health = await apiBrainStorage.health()
       setStorage(apiBrainStorage)
       setStorageMode('api')
       setStorageMessage('File system mode. Markdown files save directly to /brain.')
+      setActiveBrainPath(health.brainRoot)
       setFiles(await apiBrainStorage.listFiles())
       setError(undefined)
     } catch {
       setStorage(localBrainStorage)
       setStorageMode('localStorage')
       setStorageMessage('File persistence unavailable. Running in browser fallback mode. Changes save only to localStorage.')
+      setActiveBrainPath('Browser localStorage')
       try {
         setFiles(await localBrainStorage.listFiles())
         setError(undefined)
@@ -83,6 +86,7 @@ export function BrainProvider({ children }: { children: ReactNode }) {
       error,
       storageMode,
       storageMessage,
+      activeBrainPath,
       projects,
       saveFile,
       createFile,
@@ -91,7 +95,7 @@ export function BrainProvider({ children }: { children: ReactNode }) {
       reloadFromSource,
       resetToSeed,
     }),
-    [createFile, createProject, deleteFile, error, files, loading, projects, reloadFromSource, resetToSeed, saveFile, storageMessage, storageMode],
+    [activeBrainPath, createFile, createProject, deleteFile, error, files, loading, projects, reloadFromSource, resetToSeed, saveFile, storageMessage, storageMode],
   )
 
   return <BrainContext.Provider value={value}>{children}</BrainContext.Provider>

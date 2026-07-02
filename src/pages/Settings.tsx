@@ -7,7 +7,7 @@ import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
 
 export function Settings() {
-  const { files, resetToSeed, reloadFromSource, storageMode, storageMessage } = useBrain()
+  const { files, resetToSeed, reloadFromSource, storageMode, storageMessage, activeBrainPath } = useBrain()
   const [status, setStatus] = useState<string>()
 
   async function reset() {
@@ -31,6 +31,11 @@ export function Settings() {
           <Badge tone={storageMode === 'api' ? 'cyan' : 'gold'}>{storageMode === 'api' ? 'File system mode' : 'Browser fallback mode'}</Badge>
         </div>
         <p className="mt-2 text-sm leading-6 text-slate-400">{storageMessage}</p>
+        {activeBrainPath ? (
+          <p className="mt-2 break-all rounded-lg border border-white/10 bg-slate-950/40 px-3 py-2 font-mono text-xs text-slate-300">
+            {activeBrainPath}
+          </p>
+        ) : null}
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-lg border border-teal-300/25 bg-teal-300/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <p className="text-sm font-semibold text-teal-50">ApiBrainStorage</p>

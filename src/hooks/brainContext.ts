@@ -11,6 +11,7 @@ export interface BrainContextValue {
   error?: string
   storageMode: StorageMode
   storageMessage?: string
+  activeBrainPath?: string
   projects: ReturnType<typeof buildProjects>
   saveFile(file: BrainFile): Promise<BrainFile>
   createFile(input: CreateBrainFileInput): Promise<BrainFile>
