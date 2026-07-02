@@ -1,7 +1,10 @@
 {
   "name": "perpetualbrain",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "productName": "PerpetualBrain",
+  "description": "A local-first AI second brain and Codex command center for project memory, prompts, decisions, and reusable context.",
+  "author": "sebastien lato",
   "type": "module",
   "main": "dist-electron/electron/main.js",
   "scripts": {
@@ -13,6 +16,7 @@
     "electron:pack": "npm run build && npm run electron:compile && electron-builder --dir",
     "electron:build": "npm run build && npm run electron:compile && electron-builder",
     "dist:mac": "npm run build && npm run electron:compile && electron-builder --mac",
+    "icons:generate": "python3 scripts/generate-icons.py",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "oxlint --ignore-pattern dist --ignore-pattern dist-electron --ignore-pattern release",
@@ -52,8 +56,9 @@
     "wait-on": "^9.0.10"
   },
   "build": {
-    "appId": "com.perpetualbrain.desktop",
+    "appId": "com.latodev.perpetualbrain",
     "productName": "PerpetualBrain",
+    "copyright": "Copyright © 2026 sebastien lato",
     "directories": {
       "output": "release"
     },
@@ -69,6 +74,7 @@
       }
     ],
     "mac": {
+      "icon": "build/icon.icns",
       "category": "public.app-category.productivity",
       "target": [
         "dmg",

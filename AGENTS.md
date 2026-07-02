@@ -16,6 +16,8 @@ PerpetualBrain is a structured AI context system. Preserve the distinction betwe
 - Keep Electron secure: `contextIsolation: true`, `nodeIntegration: false`, sandboxed renderer, no remote module, and no arbitrary filesystem access from the renderer.
 - Electron main may start or connect to the local API, but the renderer should continue using `ApiBrainStorage` and the existing `/api` routes.
 - Packaged Electron builds must use a writable brain folder and must not overwrite existing user brain files when seeding.
+- Keep production metadata in `package.json` current for Electron releases: product name, app id, description, author, version, copyright, category, and icon path.
+- Regenerate app icons with `npm run icons:generate` after changing `scripts/generate-icons.py` or icon source assets.
 - Keep parser and bundle logic in `src/utils` instead of embedding it in page components.
 - Use reusable components from `src/components` for buttons, cards, badges, Markdown rendering, copy actions, and empty states.
 - Keep UI dense, polished, dark-mode first, and devtool-oriented.
@@ -33,6 +35,8 @@ npm run typecheck
 For file persistence changes, run `npm run dev` and manually verify disk writes in `/brain`.
 
 For Electron changes, also run `npm run electron:compile` and verify `npm run electron:dev` opens the app in file-backed mode.
+
+For release packaging changes, run `npm run dist:mac` and inspect the resulting `release/` artifacts.
 
 ## Scope
 

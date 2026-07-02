@@ -38,6 +38,8 @@ src/test/         Test fixtures
 brain/            Portable Markdown knowledge base
 docs/             Project documentation
 dist-electron/    Generated Electron build output
+build/            Release icon source assets and generated macOS icon files
+scripts/          Release helper scripts such as icon generation
 ```
 
 ## Storage Boundary
@@ -71,6 +73,14 @@ The desktop app uses a secure Electron shell:
 
 Development loads the Vite dev server and uses the repo-local `brain/` folder. Production loads `dist/index.html` from the packaged app and uses a writable user data brain folder.
 
+Release metadata lives in `package.json`:
+
+- product name: `PerpetualBrain`
+- app id: `com.latodev.perpetualbrain`
+- version: `0.1.0`
+- macOS category: `public.app-category.productivity`
+- macOS icon: `build/icon.icns`
+
 ## Desktop Brain Seeding
 
 The packaged app includes the repo `brain/` folder as `brain-seed` through `electron-builder` `extraResources`.
@@ -84,7 +94,7 @@ On first packaged launch:
 On macOS, the default packaged location is:
 
 ```text
-~/Library/Application Support/perpetualbrain/brain
+~/Library/Application Support/PerpetualBrain/brain
 ```
 
 The API reports this path through `GET /api/health`, and Settings displays it when file-system mode is active.
@@ -92,6 +102,7 @@ The API reports this path through `GET /api/health`, and Settings displays it wh
 ## Desktop Commands
 
 ```bash
+npm run icons:generate
 npm run electron:dev
 npm run electron:compile
 npm run electron:pack
@@ -100,6 +111,17 @@ npm run dist:mac
 ```
 
 `electron:pack` creates an unpacked app under `release/`. `dist:mac` creates macOS distributables under `release/`.
+
+## Icon Pipeline
+
+`scripts/generate-icons.py` creates the app icon assets from a deterministic Pillow drawing:
+
+- `build/icon.png` is the 1024x1024 source icon.
+- `build/icon-512.png` and `build/icon-256.png` are PNG fallbacks.
+- `build/icon.iconset/` contains the macOS iconset sizes.
+- `build/icon.icns` is generated with macOS `iconutil` and consumed by electron-builder.
+
+The icon uses the same black surface and cyan to violet to magenta to orange edge language as the app UI. Regenerate icons with `npm run icons:generate` before release packaging if the artwork changes.
 
 ## API Routes
 
@@ -135,6 +157,5 @@ brain/projects/<project-slug>/CODEX_CONTEXT.md
 
 ## Known Limitations
 
-- Desktop signing and notarization are not configured yet.
-- The current desktop icon is a temporary placeholder.
+- Desktop notarization is not configured yet.
 - Packaged builds use the default Application Support brain folder; custom brain-folder selection is planned for a later phase.
