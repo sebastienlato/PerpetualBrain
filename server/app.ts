@@ -3,6 +3,7 @@ import express from 'express'
 import { z } from 'zod'
 import { FileSystemBrainStorage } from './storage/FileSystemBrainStorage.js'
 import { BrainPathError } from './utils/brainPath.js'
+import { getGitDiffSummary, getGitStatus, initializeGitRepo } from './utils/gitStatus.js'
 
 export interface CreateApiAppOptions {
   brainRoot?: string
@@ -97,6 +98,30 @@ export function createApiApp({ brainRoot, getBrainRoot, getBrainRootSource, getB
       const { path: filePath } = pathQuerySchema.parse(req.query)
       await storage().deleteFile(filePath)
       res.json({ ok: true })
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.get('/api/git/status', async (_req, res, next) => {
+    try {
+      res.json(await getGitStatus(resolveBrainRoot()))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.post('/api/git/init', async (_req, res, next) => {
+    try {
+      res.status(201).json(await initializeGitRepo(resolveBrainRoot()))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.get('/api/git/diff-summary', async (_req, res, next) => {
+    try {
+      res.json(await getGitDiffSummary(resolveBrainRoot()))
     } catch (error) {
       next(error)
     }

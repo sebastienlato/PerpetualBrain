@@ -161,6 +161,9 @@ The icon uses the same black surface and cyan to violet to magenta to orange edg
 - `POST /api/brain/file`
 - `POST /api/brain/project`
 - `DELETE /api/brain/file?path=...`
+- `GET /api/git/status`
+- `POST /api/git/init`
+- `GET /api/git/diff-summary`
 
 ## File Safety
 
@@ -173,6 +176,28 @@ Rules:
 - Path traversal segments are rejected.
 - Binary content with null bytes is rejected.
 - Project slugs are normalized before folder creation.
+
+## Git Status Boundary
+
+`server/utils/gitStatus.ts` owns lightweight Git awareness for the active brain folder. It uses `child_process.execFile` with `cwd` set to the active brain root and a short timeout. It never executes raw shell strings and does not accept arbitrary Git commands from the renderer.
+
+Allowed backend commands:
+
+- `git --version`
+- `git rev-parse --is-inside-work-tree`
+- `git status --porcelain=v1 -b -uall -- .`
+- `git diff --shortstat -- .`
+- `git init`
+
+The app does not run:
+
+- `git commit`
+- `git push`
+- `git pull`
+- remote configuration
+- arbitrary user-provided Git arguments
+
+Settings shows branch/status information and copies suggested commit commands for the user to run manually. If Git is unavailable, the API returns a graceful status object instead of throwing to the renderer. If the active folder is not a Git repo, the app can initialize one after explicit confirmation and creates `.gitignore` only when missing.
 
 ## Context Bundle Generation
 

@@ -18,6 +18,8 @@ PerpetualBrain is a structured AI context system. Preserve the distinction betwe
 - Packaged Electron builds must use a writable brain folder and must not overwrite existing user brain files when seeding.
 - Custom brain folder selection is Electron-only. Keep it behind a minimal preload bridge; do not expose raw filesystem APIs to the renderer.
 - When changing folder-selection behavior, preserve safe fallback to the default brain folder if the saved path is missing.
+- Git integration must remain lightweight and local: status/init only, no automatic commits, pushes, pulls, remotes, or arbitrary Git arguments.
+- Run Git with `execFile` or equivalent safe APIs scoped to the active brain root; never build shell command strings from user input.
 - Keep production metadata in `package.json` current for Electron releases: product name, app id, description, author, version, copyright, category, and icon path.
 - Regenerate app icons with `npm run icons:generate` after changing `scripts/generate-icons.py` or icon source assets.
 - Keep parser and bundle logic in `src/utils` instead of embedding it in page components.
@@ -41,6 +43,8 @@ For Electron changes, also run `npm run electron:compile` and verify `npm run el
 For release packaging changes, run `npm run dist:mac` and inspect the resulting `release/` artifacts.
 
 For custom brain folder changes, verify selecting an empty folder, selecting an existing brain folder, resetting to default, and relaunching Electron with the saved folder.
+
+For Git/versioning changes, verify non-Git folders, Git repo folders, changed Markdown files, copied command text, and browser fallback behavior.
 
 ## Scope
 

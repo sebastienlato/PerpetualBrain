@@ -1,17 +1,51 @@
-import { FolderOpen, MonitorCog, RefreshCw, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { FolderOpen, GitBranch, GitCommit, MonitorCog, RefreshCw, RotateCcw } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { CopyButton } from '../components/CopyButton'
 import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
+import type { GitStatusResult } from '../types/git'
 
 export function Settings() {
   const { files, resetToSeed, reloadFromSource, storageMode, storageMessage, activeBrainPath } = useBrain()
   const [status, setStatus] = useState<string>()
+  const [gitStatus, setGitStatus] = useState<GitStatusResult>()
+  const [gitStatusError, setGitStatusError] = useState<string>()
+  const [gitLastCheckedAt, setGitLastCheckedAt] = useState<string>()
+  const [gitLoading, setGitLoading] = useState(false)
   const desktopRuntime = typeof window !== 'undefined' ? window.perpetualBrainDesktop : undefined
   const runtimeLabel = desktopRuntime ? `Electron desktop (${desktopRuntime.platform})` : 'Browser/dev server'
+  const gitCommands = useMemo(() => buildGitCommands(activeBrainPath, gitStatus), [activeBrainPath, gitStatus])
+
+  const refreshGitStatus = useCallback(async () => {
+    if (storageMode !== 'api') {
+      setGitStatus(undefined)
+      setGitStatusError('Git integration is available when the local API is running.')
+      return
+    }
+
+    setGitLoading(true)
+    try {
+      const response = await fetch('/api/git/status')
+      if (!response.ok) {
+        throw new Error(`Git status failed with ${response.status}.`)
+      }
+      setGitStatus(await response.json() as GitStatusResult)
+      setGitStatusError(undefined)
+      setGitLastCheckedAt(new Date().toLocaleString())
+    } catch (error) {
+      setGitStatus(undefined)
+      setGitStatusError(error instanceof Error ? error.message : 'Unable to load Git status.')
+    } finally {
+      setGitLoading(false)
+    }
+  }, [storageMode])
+
+  useEffect(() => {
+    void refreshGitStatus()
+  }, [activeBrainPath, refreshGitStatus])
 
   async function reset() {
     if (window.confirm('Reset local browser storage to the seeded /brain Markdown files? Unsaved local edits will be replaced.')) {
@@ -22,6 +56,7 @@ export function Settings() {
 
   async function reload() {
     await reloadFromSource()
+    await refreshGitStatus()
     setStatus(storageMode === 'api' ? 'Reloaded latest Markdown files from disk.' : 'Reloaded browser fallback storage.')
   }
 
@@ -47,6 +82,33 @@ export function Settings() {
     const result = await desktopRuntime.resetBrainFolder()
     await reloadFromSource()
     setStatus(result.message || 'Reset to the default brain folder.')
+  }
+
+  async function initializeGitRepo() {
+    if (storageMode !== 'api') {
+      setStatus('Git integration is available when the local API is running.')
+      return
+    }
+
+    if (!window.confirm('Initialize a Git repository in the active brain folder? This does not commit anything.')) {
+      return
+    }
+
+    setGitLoading(true)
+    try {
+      const response = await fetch('/api/git/init', { method: 'POST' })
+      if (!response.ok) {
+        throw new Error(`Git init failed with ${response.status}.`)
+      }
+      setGitStatus(await response.json() as GitStatusResult)
+      setGitStatusError(undefined)
+      setGitLastCheckedAt(new Date().toLocaleString())
+      setStatus('Initialized Git repository in the active brain folder.')
+    } catch (error) {
+      setGitStatusError(error instanceof Error ? error.message : 'Unable to initialize Git repository.')
+    } finally {
+      setGitLoading(false)
+    }
   }
 
   return (
@@ -121,6 +183,113 @@ export function Settings() {
         {!desktopRuntime ? <p className="mt-3 text-sm text-slate-500">Custom folder selection is available in the desktop app.</p> : null}
         {status ? <p className="mt-3 text-sm text-teal-100">{status}</p> : null}
       </Card>
+
+      <Card className="p-5 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-cyan-200">
+              <GitBranch size={18} />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Git Versioning</h2>
+              <p className="text-xs text-slate-500">Lightweight status for the active brain folder.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {gitStatus ? <Badge tone={gitStatus.isGitRepo ? 'cyan' : 'gold'}>{gitStatus.isGitRepo ? 'Git repo' : 'Not initialized'}</Badge> : null}
+            {gitStatus?.isGitRepo ? <Badge tone={gitStatus.clean ? 'slate' : 'rose'}>{gitStatus.clean ? 'Clean' : 'Changes'}</Badge> : null}
+          </div>
+        </div>
+
+        {storageMode !== 'api' ? (
+          <p className="mt-4 text-sm leading-6 text-slate-400">Git integration is available when the local API is running.</p>
+        ) : gitStatusError ? (
+          <p className="mt-4 text-sm leading-6 text-rose-100">{gitStatusError}</p>
+        ) : gitStatus ? (
+          <div className="mt-4 space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <GitStat label="Branch" value={gitStatus.branch || 'No branch'} />
+              <GitStat label="Changed" value={`${gitStatus.changedFiles.length}`} />
+              <GitStat label="Untracked" value={`${gitStatus.untrackedFiles.length}`} />
+            </div>
+
+            {!gitStatus.gitAvailable ? (
+              <p className="text-sm leading-6 text-rose-100">{gitStatus.error || 'Git is not available on this Mac.'}</p>
+            ) : !gitStatus.isGitRepo ? (
+              <div className="gradient-border-soft rounded-lg p-4">
+                <p className="text-sm font-semibold text-white">Versioning is recommended</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">Initialize Git in this brain folder to track Markdown changes over time. PerpetualBrain will not commit or push automatically.</p>
+              </div>
+            ) : gitStatus.clean ? (
+              <div className="gradient-border-soft rounded-lg p-4 text-sm text-slate-300">No Git changes detected in the active brain folder.</div>
+            ) : (
+              <div className="grid gap-3 lg:grid-cols-3">
+                <GitFileList title="Staged files" files={gitStatus.stagedFiles} />
+                <GitFileList title="Changed files" files={gitStatus.changedFiles} />
+                <GitFileList title="Untracked files" files={gitStatus.untrackedFiles} />
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Button icon={<RefreshCw size={16} />} disabled={gitLoading} onClick={() => void refreshGitStatus()}>{gitLoading ? 'Checking' : 'Refresh Git Status'}</Button>
+              {gitStatus.gitAvailable && !gitStatus.isGitRepo ? <Button icon={<GitCommit size={16} />} variant="primary" onClick={() => void initializeGitRepo()}>Initialize Git Repo</Button> : null}
+              <CopyButton label="Copy Git Commands" value={gitCommands} />
+              {gitLastCheckedAt ? <span className="text-sm text-slate-500">Last checked {gitLastCheckedAt}</span> : null}
+            </div>
+          </div>
+        ) : (
+          <p className="mt-4 text-sm leading-6 text-slate-400">Checking Git status...</p>
+        )}
+      </Card>
     </div>
   )
+}
+
+function GitStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="gradient-border-soft rounded-lg p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
+    </div>
+  )
+}
+
+function GitFileList({ title, files }: { title: string; files: string[] }) {
+  return (
+    <div className="gradient-border-soft rounded-lg p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</p>
+      {files.length ? (
+        <div className="mt-3 max-h-52 space-y-2 overflow-auto">
+          {files.map((file) => <p key={file} className="break-all font-mono text-xs leading-5 text-slate-300">{file}</p>)}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-slate-500">None</p>
+      )}
+    </div>
+  )
+}
+
+function shellQuotePath(path: string) {
+  return `"${path.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`
+}
+
+function buildGitCommands(activeBrainPath?: string, gitStatus?: GitStatusResult) {
+  const path = activeBrainPath && activeBrainPath !== 'Browser localStorage' ? activeBrainPath : '<active brain path>'
+  const cd = `cd ${shellQuotePath(path)}`
+
+  if (!gitStatus?.isGitRepo) {
+    return [
+      cd,
+      'git init',
+      'git add .',
+      'git commit -m "Initialize PerpetualBrain notes"',
+    ].join('\n')
+  }
+
+  return [
+    cd,
+    'git status',
+    'git add .',
+    'git commit -m "Update brain notes"',
+  ].join('\n')
 }
