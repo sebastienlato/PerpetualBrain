@@ -21,7 +21,7 @@ export function FilePicker({ files, selectedIds, onChange }: FilePickerProps) {
           key={file.id}
           className={cn(
             'flex w-full min-w-0 max-w-full items-start gap-3 overflow-hidden rounded-lg border p-3 text-sm transition duration-200',
-            selectedIds.includes(file.id) ? 'border-teal-300/45 bg-teal-300/12 shadow-[0_0_0_1px_rgba(94,234,212,0.08)]' : 'border-white/10 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.075]',
+            selectedIds.includes(file.id) ? 'gradient-border-strong text-white' : 'gradient-border-soft hover:shadow-[0_0_18px_rgba(124,92,255,0.1)]',
           )}
         >
           <input className="mt-1 shrink-0 accent-teal-300" type="checkbox" checked={selectedIds.includes(file.id)} onChange={() => toggle(file.id)} />

@@ -60,9 +60,9 @@ export function ProjectDetail() {
       />
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card className="p-5 md:col-span-2">
+        <Card className="gradient-top-line p-5 md:col-span-2">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-lg border border-teal-300/18 bg-teal-300/10 text-teal-200">
+            <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-cyan-200">
               <CheckCircle2 size={18} />
             </span>
             <h2 className="text-lg font-semibold text-white">Current Status</h2>
@@ -83,7 +83,7 @@ export function ProjectDetail() {
       <section className="grid gap-5 xl:grid-cols-[0.9fr_1.2fr]">
         <Card className="p-5">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-slate-300">
+              <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-slate-200">
               <Files size={18} />
             </span>
             <div>
@@ -93,7 +93,7 @@ export function ProjectDetail() {
           </div>
           <div className="mt-4 grid gap-2">
             {project.files.map((file) => (
-              <Link key={file.id} to={`/files/${file.id}`} className="group flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-3 transition hover:border-teal-300/28 hover:bg-teal-300/8">
+              <Link key={file.id} to={`/files/${file.id}`} className="gradient-border-soft group flex items-center justify-between gap-3 rounded-lg p-3 transition hover:shadow-[0_0_18px_rgba(124,92,255,0.1)]">
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-white">{file.title}</span>
                   <span className="mt-1 block text-xs text-slate-500">{file.name}</span>
@@ -107,14 +107,14 @@ export function ProjectDetail() {
         <div className="space-y-5">
           <Card className="p-5 md:p-6">
             <h2 className="text-lg font-semibold text-white">Active Tasks</h2>
-            <div className="mt-3 h-px bg-gradient-to-r from-teal-300/30 to-transparent" />
+            <div className="gradient-divider mt-3 opacity-70" />
             <div className="mt-4">
             <MarkdownView content={sectionFromMarkdown(projectFile?.content ?? '', 'Active Tasks') || 'No active tasks captured.'} />
             </div>
           </Card>
           <Card className="p-5 md:p-6">
             <h2 className="text-lg font-semibold text-white">Known Issues</h2>
-            <div className="mt-3 h-px bg-gradient-to-r from-amber-300/30 to-transparent" />
+            <div className="gradient-divider mt-3 opacity-70" />
             <div className="mt-4">
             <MarkdownView content={sectionFromMarkdown(projectFile?.content ?? '', 'Known Issues') || 'No known issues captured.'} />
             </div>
@@ -130,7 +130,7 @@ export function ProjectDetail() {
         <Card className="p-5">
           <h2 className="text-lg font-semibold text-white">Recent Decisions</h2>
           <div className="mt-3 grid gap-2">
-            {decisions.map((decision) => <p key={decision.id} className="rounded-md border border-white/10 bg-white/[0.035] px-3 py-2 text-sm leading-6 text-slate-300">{decision.decision}</p>)}
+            {decisions.map((decision) => <p key={decision.id} className="gradient-border-soft rounded-md px-3 py-2 text-sm leading-6 text-slate-300">{decision.decision}</p>)}
           </div>
         </Card>
         <Card className="p-5">

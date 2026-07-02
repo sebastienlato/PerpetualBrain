@@ -27,9 +27,9 @@ export function SearchPage() {
         <div className="grid gap-3">
           {results.map((result) => (
             <Link key={result.file.id} to={`/files/${result.file.id}`}>
-              <Card className="p-4 transition hover:border-teal-300/30 hover:bg-teal-300/8">
+              <Card className="p-4 transition hover:shadow-[0_0_20px_rgba(124,92,255,0.1)]">
                 <div className="flex items-start gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-teal-300/18 bg-teal-300/10 text-teal-200"><FileText size={17} /></span>
+                  <span className="gradient-border-soft grid size-10 shrink-0 place-items-center rounded-lg text-cyan-200"><FileText size={17} /></span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="font-semibold text-white">{result.file.title}</h2>

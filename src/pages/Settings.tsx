@@ -32,16 +32,16 @@ export function Settings() {
         </div>
         <p className="mt-2 text-sm leading-6 text-slate-400">{storageMessage}</p>
         {activeBrainPath ? (
-          <p className="mt-2 break-all rounded-lg border border-white/10 bg-slate-950/40 px-3 py-2 font-mono text-xs text-slate-300">
+          <p className="gradient-border-soft mt-2 break-all rounded-lg px-3 py-2 font-mono text-xs text-slate-300">
             {activeBrainPath}
           </p>
         ) : null}
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-teal-300/25 bg-teal-300/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="gradient-border-strong rounded-lg p-4">
             <p className="text-sm font-semibold text-teal-50">ApiBrainStorage</p>
             <p className="mt-2 text-sm leading-6 text-teal-100/75">Preferred adapter. Reads, writes, creates, and deletes Markdown files through the local Node API.</p>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+          <div className="gradient-border-soft rounded-lg p-4">
             <p className="text-sm font-semibold text-white">LocalStorageBrainStorage</p>
             <p className="mt-2 text-sm leading-6 text-slate-400">Fallback adapter. Keeps the app usable when the API is not running, but does not write to disk.</p>
           </div>

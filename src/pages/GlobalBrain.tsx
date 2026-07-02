@@ -18,9 +18,9 @@ export function GlobalBrain() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {globalFiles.map((file) => (
           <Link key={file.id} to={`/files/${file.id}`}>
-            <Card className="group h-full p-5 transition hover:border-teal-300/30 hover:bg-teal-300/8">
+            <Card className="group h-full p-5 transition hover:shadow-[0_0_22px_rgba(124,92,255,0.1)]">
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-teal-200">
+                <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-cyan-200">
                   <Globe2 size={18} />
                 </span>
                 <h2 className="text-lg font-semibold text-white">{file.title}</h2>

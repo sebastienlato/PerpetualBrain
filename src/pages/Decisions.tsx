@@ -17,8 +17,8 @@ export function Decisions() {
       ) : (
         <div className="grid gap-4">
           {decisions.map((decision) => (
-            <Card key={decision.id} className="relative overflow-hidden p-5">
-              <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-teal-200/70 via-amber-200/40 to-transparent" />
+            <Card key={decision.id} className="gradient-top-line relative overflow-hidden p-5">
+              <div className="absolute left-0 top-4 bottom-4 w-px bg-[linear-gradient(180deg,#31c8ff,#7c5cff,#ff4fd8,#ff7a3d)] shadow-[0_0_14px_rgba(255,79,216,0.32)]" />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{decision.projectName} / {decision.date}</p>
@@ -41,7 +41,7 @@ export function Decisions() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+    <div className="gradient-border-soft rounded-lg p-3">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p>
       <p className="mt-2 text-sm leading-6 text-slate-300">{value}</p>
     </div>

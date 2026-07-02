@@ -68,7 +68,7 @@ export function FileEditor() {
         description={file.path}
         actions={
           <>
-            {file.projectId ? <Link className="inline-flex min-h-10 items-center rounded-lg border border-white/10 bg-white/[0.07] px-3.5 py-2 text-sm font-semibold text-slate-100" to={`/projects/${file.projectId}`}>Project</Link> : null}
+            {file.projectId ? <Link className="gradient-border-soft inline-flex min-h-10 items-center rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-100 transition hover:text-white" to={`/projects/${file.projectId}`}>Project</Link> : null}
             <CopyButton value={draft} />
             <Button icon={saveStatus === 'saved' ? <CheckCircle size={16} /> : saveStatus === 'error' ? <AlertCircle size={16} /> : <Save size={16} />} variant={isDirty ? 'primary' : 'secondary'} disabled={saveStatus === 'saving'} onClick={() => void handleSave()}>
               {saveStatus === 'saving' ? 'Saving' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}
@@ -78,13 +78,13 @@ export function FileEditor() {
         }
       />
 
-      <Card className="overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-white/10 bg-white/[0.025] px-4 py-3 md:flex-row md:items-center md:justify-between">
+      <Card className="gradient-border-strong overflow-hidden">
+        <div className="neon-edge flex flex-col gap-3 border-b border-white/10 bg-black/45 px-4 py-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2">
             <Button icon={<PenLine size={16} />} variant={mode === 'edit' ? 'primary' : 'ghost'} onClick={() => setMode('edit')}>Edit</Button>
             <Button icon={<Eye size={16} />} variant={mode === 'preview' ? 'primary' : 'ghost'} onClick={() => setMode('preview')}>Preview</Button>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/45 px-3 py-1 text-xs text-slate-400">
+          <span className="gradient-border-soft inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs text-slate-300">
             <FileText size={13} />
             {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'error' ? 'Save failed' : isDirty ? 'Unsaved changes' : `Saved ${new Date(file.updatedAt).toLocaleString()}`}
           </span>
@@ -92,13 +92,13 @@ export function FileEditor() {
         {saveError ? <div className="border-b border-rose-300/20 bg-rose-500/10 px-4 py-2 text-sm text-rose-100">{saveError}</div> : null}
         {mode === 'edit' ? (
           <textarea
-            className="min-h-[38rem] w-full resize-y border-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.82),rgba(15,23,42,0.72))] p-5 font-mono text-[0.92rem] leading-7 text-slate-100 outline-none placeholder:text-slate-600 md:p-6"
+            className="gradient-focus min-h-[38rem] w-full resize-y border border-transparent bg-[linear-gradient(180deg,rgba(2,3,5,0.96),rgba(8,10,15,0.92))] p-5 font-mono text-[0.92rem] leading-7 text-slate-100 outline-none placeholder:text-slate-600 md:p-6"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             spellCheck={false}
           />
         ) : (
-          <div className="min-h-[38rem] bg-slate-950/28 p-5 md:p-6">
+          <div className="min-h-[38rem] bg-[linear-gradient(180deg,rgba(2,3,5,0.94),rgba(8,10,15,0.9))] p-5 shadow-[inset_0_18px_60px_rgba(0,0,0,0.22)] md:p-6">
             <MarkdownView content={draft} />
           </div>
         )}

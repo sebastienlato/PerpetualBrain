@@ -14,10 +14,10 @@ export function Templates() {
       <PageHeader eyebrow="Templates" title="Reusable project and handoff templates" description="Start new project context, phase handoffs, kickoff prompts, and bug reports from consistent Markdown templates." />
       <div className="grid gap-4 md:grid-cols-2">
         {templates.map((file) => (
-          <Card key={file.id} className="p-5">
+          <Card key={file.id} className="gradient-top-line p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-teal-200">
+                <span className="gradient-border-soft grid size-10 shrink-0 place-items-center rounded-lg text-cyan-200">
                   <FileStack size={18} />
                 </span>
                 <div className="min-w-0">
@@ -27,8 +27,8 @@ export function Templates() {
               </div>
               <CopyButton value={file.content} />
             </div>
-            <p className="mt-4 line-clamp-6 whitespace-pre-line rounded-lg border border-white/10 bg-slate-950/30 p-4 text-sm leading-6 text-slate-400">{file.content.replace(/^#\s+.+\n*/, '').trim()}</p>
-            <Link className="mt-4 inline-flex rounded-md px-2 py-1 text-sm text-teal-200 transition hover:bg-teal-300/10 hover:text-teal-100" to={`/files/${file.id}`}>Open template</Link>
+            <p className="gradient-border-soft mt-4 line-clamp-6 whitespace-pre-line rounded-lg p-4 text-sm leading-6 text-slate-400">{file.content.replace(/^#\s+.+\n*/, '').trim()}</p>
+            <Link className="mt-4 inline-flex rounded-md px-2 py-1 text-sm text-cyan-200 transition hover:bg-white/[0.06] hover:text-fuchsia-100" to={`/files/${file.id}`}>Open template</Link>
           </Card>
         ))}
       </div>

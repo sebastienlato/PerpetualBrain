@@ -89,13 +89,13 @@ export function ContextBuilder() {
           </>
         }
       />
-      {exportStatus ? <div className="rounded-lg border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm text-teal-100">{exportStatus}</div> : null}
+      {exportStatus ? <div className="gradient-border-soft rounded-lg px-4 py-3 text-sm text-cyan-100">{exportStatus}</div> : null}
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
         <div className="min-w-0 space-y-5">
-          <Card className="p-5 md:p-6">
+          <Card className="gradient-top-line p-5 md:p-6">
             <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-lg border border-teal-300/18 bg-teal-300/10 text-teal-200">
+              <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-cyan-200">
                 <Sparkles size={18} />
               </span>
               <div>
@@ -107,7 +107,7 @@ export function ContextBuilder() {
               <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
                 Project
                 <select
-                  className="min-h-11 min-w-0 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
+                  className="dark-input gradient-focus min-h-11 min-w-0 rounded-lg px-3 text-white"
                   value={options.projectId}
                   onChange={(event) => setOptions((current) => ({ ...current, projectId: event.target.value, fileIds: [] }))}
                 >
@@ -117,7 +117,7 @@ export function ContextBuilder() {
               <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
                 Prompt Template
                 <select
-                  className="min-h-11 min-w-0 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
+                  className="dark-input gradient-focus min-h-11 min-w-0 rounded-lg px-3 text-white"
                   value={options.promptTemplateId}
                   onChange={(event) => update('promptTemplateId', event.target.value)}
                 >
@@ -130,10 +130,10 @@ export function ContextBuilder() {
             </div>
           </Card>
 
-          <Card className="p-5 md:p-6">
+          <Card className="gradient-top-line p-5 md:p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-slate-300">
+                <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-slate-200">
                   <FileCheck2 size={18} />
                 </span>
                 <h2 className="text-lg font-semibold text-white">Included Files</h2>
@@ -147,15 +147,15 @@ export function ContextBuilder() {
           </Card>
         </div>
 
-        <Card className="overflow-hidden xl:sticky xl:top-8 xl:self-start">
-          <div className="flex flex-col gap-3 border-b border-white/10 bg-white/[0.025] px-4 py-3 md:flex-row md:items-center md:justify-between">
+        <Card className="gradient-border-strong overflow-hidden xl:sticky xl:top-8 xl:self-start">
+          <div className="neon-edge flex flex-col gap-3 border-b border-white/10 bg-black/45 px-4 py-3 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-white">Codex Context Bundle</h2>
               <p className="text-xs text-slate-500">{bundle.length.toLocaleString()} characters</p>
             </div>
             <CopyButton label="Copy" value={bundle} />
           </div>
-          <pre className="max-h-[58rem] overflow-auto whitespace-pre-wrap bg-[linear-gradient(180deg,rgba(2,6,23,0.88),rgba(15,23,42,0.74))] p-5 font-mono text-[0.82rem] leading-6 text-slate-200 md:p-6">{bundle}</pre>
+          <pre className="max-h-[58rem] overflow-auto whitespace-pre-wrap bg-[linear-gradient(180deg,rgba(2,3,5,0.96),rgba(8,10,15,0.92))] p-5 font-mono text-[0.82rem] leading-6 text-slate-200 shadow-[inset_0_18px_70px_rgba(0,0,0,0.28)] md:p-6">{bundle}</pre>
         </Card>
       </div>
     </div>
@@ -167,7 +167,7 @@ function TextArea({ label, value, onChange, rows = 3 }: { label: string; value: 
     <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
       {label}
       <textarea
-        className="min-w-0 resize-y rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-slate-600 focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
+        className="dark-input gradient-focus min-w-0 resize-y rounded-lg px-3 py-2 text-sm leading-6 text-white placeholder:text-slate-600"
         rows={rows}
         value={value}
         onChange={(event) => onChange(event.target.value)}

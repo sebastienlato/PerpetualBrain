@@ -36,10 +36,10 @@ export function AppLayout() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[18.5rem_1fr]">
-      <aside className="border-b border-white/10 bg-ink-950/88 px-4 py-4 shadow-[12px_0_50px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+    <div className="min-h-screen bg-[#030304] lg:grid lg:grid-cols-[18.5rem_1fr]">
+      <aside className="gradient-top-line neon-edge border-b border-white/10 bg-black/88 px-4 py-4 shadow-[12px_0_50px_rgba(0,0,0,0.34)] backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:border-white/10 lg:px-5 lg:py-6">
         <NavLink to="/" className="group flex items-center gap-3 rounded-lg px-2 py-2">
-          <span className="grid size-11 place-items-center rounded-lg border border-teal-300/25 bg-teal-300/12 text-teal-100 shadow-[0_0_32px_rgba(45,212,191,0.14)] transition group-hover:border-teal-200/45">
+          <span className="gradient-border-strong grid size-11 place-items-center rounded-lg text-cyan-100 transition">
             <BookOpen size={20} />
           </span>
           <span className="min-w-0">
@@ -58,15 +58,15 @@ export function AppLayout() {
                 cn(
                   'group relative flex min-h-10 items-center gap-3 rounded-lg border px-3 py-2 text-sm font-medium transition duration-200',
                   isActive
-                    ? 'border-teal-300/24 bg-teal-300/12 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
-                    : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.06] hover:text-slate-100',
+                    ? 'gradient-border-soft text-white shadow-[0_0_20px_rgba(124,92,255,0.09)]'
+                    : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.045] hover:text-slate-100',
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className={cn('absolute left-0 top-2 bottom-2 w-0.5 rounded-full transition', isActive ? 'bg-teal-200' : 'bg-transparent')} />
-                  <item.icon className={cn('transition', isActive ? 'text-teal-200' : 'text-slate-500 group-hover:text-slate-300')} size={17} />
+                  <span className={cn('absolute left-0 top-2 bottom-2 w-0.5 rounded-full transition', isActive ? 'bg-[linear-gradient(180deg,#31c8ff,#ff4fd8,#ff7a3d)] shadow-[0_0_12px_rgba(255,79,216,0.42)]' : 'bg-transparent')} />
+                  <item.icon className={cn('transition', isActive ? 'text-cyan-200' : 'text-slate-500 group-hover:text-slate-300')} size={17} />
                   <span className="truncate">{item.label}</span>
                 </>
               )}
@@ -74,7 +74,7 @@ export function AppLayout() {
           ))}
         </nav>
 
-        <div className="mt-5 hidden rounded-lg border border-white/10 bg-white/[0.045] p-3 lg:block">
+        <div className="gradient-border-soft mt-5 hidden rounded-lg p-3 lg:block">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
             <Boxes size={14} />
             Source
@@ -92,13 +92,13 @@ export function AppLayout() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-5 grid gap-2">
             {storageMode === 'localStorage' ? (
-              <div className="rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm leading-6 text-amber-100">
+              <div className="gradient-border-soft rounded-lg px-3 py-2 text-sm leading-6 text-amber-100">
                 {storageMessage}
               </div>
             ) : null}
-            <div className="flex min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2.5 text-xs text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="gradient-border-soft flex min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-xs text-slate-400">
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <PenTool className="shrink-0 text-teal-200/80" size={14} />
+                <PenTool className="shrink-0 text-cyan-200/80" size={14} />
                 <span className="truncate">Current workspace: {labelForPath(location.pathname)}</span>
                 <Badge className="hidden sm:inline-flex" tone={storageMode === 'api' ? 'cyan' : 'gold'}>{storageMode === 'api' ? 'File system mode' : 'Browser fallback mode'}</Badge>
               </div>
@@ -117,7 +117,7 @@ export function AppLayout() {
 
 function ErrorPanel({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-rose-300/25 bg-rose-400/10 p-5 text-rose-100">
+    <div className="gradient-border-soft rounded-lg p-5 text-rose-100">
       <h1 className="text-lg font-semibold">Unable to load brain</h1>
       <p className="mt-2 text-sm">{message}</p>
     </div>

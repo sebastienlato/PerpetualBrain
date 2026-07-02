@@ -48,7 +48,7 @@ export function Projects() {
               Project name
               <input
                 autoFocus
-                className="min-h-11 rounded-lg border border-white/10 bg-slate-950/70 px-3 text-white outline-none placeholder:text-slate-600 focus:border-teal-300/35 focus:ring-2 focus:ring-teal-300/10"
+                className="dark-input gradient-focus min-h-11 rounded-lg px-3 text-white placeholder:text-slate-600"
                 placeholder="Example: My AI App"
                 value={projectName}
                 onChange={(event) => setProjectName(event.target.value)}
@@ -77,7 +77,7 @@ export function Projects() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {projects.map((project) => (
             <Link key={project.id} to={`/projects/${project.id}`}>
-              <Card className="group h-full p-5 transition hover:border-teal-300/30 hover:bg-teal-300/8">
+              <Card className="group h-full p-5 transition hover:shadow-[0_0_22px_rgba(124,92,255,0.1)]">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="text-xl font-semibold text-white">{project.name}</h2>
                   <ArrowRight className="text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-teal-200" size={17} />
