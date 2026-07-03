@@ -24,6 +24,10 @@ PerpetualBrain is a structured AI context system. Preserve the distinction betwe
 - Backup ZIP import must reject path traversal and `.git` internals, extract into a new folder, and never overwrite the active brain silently.
 - Context presets are local/offline prompt generation only. Do not add external AI API calls for preset generation.
 - Keep context preset generation and history formatting in `src/utils/contextBundle.ts`; pages should wire inputs and provider actions, not embed large prompt templates.
+- Project Intake Wizard generation is local/offline Markdown generation only. Do not add external AI API calls for project intake.
+- Keep project intake template logic in `src/utils/projectIntake.ts`; pages should collect answers, preview output, and call provider storage actions.
+- Preserve the existing quick `createProject` flow when changing the Project Intake Wizard.
+- Project Intake Wizard must block existing project slugs by default and must not silently overwrite existing project folders.
 - Keep production metadata in `package.json` current for Electron releases: product name, app id, description, author, version, copyright, category, and icon path.
 - Regenerate app icons with `npm run icons:generate` after changing `scripts/generate-icons.py` or icon source assets.
 - Keep parser and bundle logic in `src/utils` instead of embedding it in page components.
@@ -53,6 +57,8 @@ For Git/versioning changes, verify non-Git folders, Git repo folders, changed Ma
 For backup/import changes, verify export ZIP contents, `.git` exclusion, import into a new folder, browser-disabled behavior, and Markdown saves after import.
 
 For context preset changes, verify preset-specific output, CODEX_CONTEXT.md export, CONTEXT_HISTORY.md append, copy behavior, search visibility, and mobile no-overflow.
+
+For Project Intake Wizard changes, verify the wizard opens, previews generated files, creates useful type-specific files, generates copyable `KICKOFF_PROMPT.md`, blocks existing project slugs, appears in Search and Context Builder, and preserves browser fallback behavior.
 
 ## Scope
 

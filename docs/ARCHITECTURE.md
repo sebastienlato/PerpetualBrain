@@ -33,7 +33,7 @@ src/layout/       Sidebar shell and routed outlet
 src/pages/        Product workflows and screens
 src/storage/      Frontend storage interface and adapters
 src/types/        Shared domain types
-src/utils/        Markdown parsing, search, bundle generation, copy helpers
+src/utils/        Markdown parsing, search, bundle generation, project intake, copy helpers
 src/test/         Test fixtures
 brain/            Portable Markdown knowledge base
 docs/             Project documentation
@@ -270,6 +270,41 @@ brain/projects/<project-slug>/CONTEXT_HISTORY.md
 
 The history entry records timestamp, preset, goal, selected files, acceptance criteria, verification commands, and bundle length. It is appended through the existing `BrainStorage` provider actions and does not overwrite previous history.
 
+## Project Intake Generation
+
+`src/utils/projectIntake.ts` owns deterministic Project Intake Wizard generation. It accepts typed wizard answers and returns the Markdown files to create. The page layer previews those generated files, blocks existing project slugs by default, then writes files through `BrainProvider.createFile`.
+
+The wizard does not call external AI APIs and does not bypass the storage adapter. Browser mode uses the same provider boundary, so file-system mode writes through `ApiBrainStorage` and fallback mode writes to `LocalStorageBrainStorage`.
+
+Supported project types:
+
+- iOS app
+- Electron app
+- Web app
+- Phaser game
+- SpriteKit game
+- Design/brand project
+- Research/investment project
+- Other
+
+Each type supplies default stack guidance, architecture boundaries, QA commands, asset rules, accessibility expectations, and phase guidance. Examples include secure Electron preload rules, Phaser review-route and screenshot QA guidance, SwiftUI/SwiftData expectations, and research source/freshness rules.
+
+Wizard-created projects write:
+
+```text
+brain/projects/<project-slug>/PROJECT.md
+brain/projects/<project-slug>/ARCHITECTURE.md
+brain/projects/<project-slug>/DESIGN_RULES.md
+brain/projects/<project-slug>/CODEX_CONTEXT.md
+brain/projects/<project-slug>/DECISIONS.md
+brain/projects/<project-slug>/TODO.md
+brain/projects/<project-slug>/LESSONS.md
+brain/projects/<project-slug>/CONTEXT_HISTORY.md
+brain/projects/<project-slug>/KICKOFF_PROMPT.md
+```
+
+`KICKOFF_PROMPT.md` is surfaced on the project detail page with a copy action so the generated project can immediately start a scoped Codex implementation session. Because the files are normal Markdown under the project folder, Search and Context Builder can use them immediately after creation.
+
 ## Known Limitations
 
 - Desktop notarization is not configured yet.
@@ -277,3 +312,4 @@ The history entry records timestamp, preset, goal, selected files, acceptance cr
 - Backup import does not import `.git` history or unsupported binary attachments.
 - Git integration is status/init/copy-only; commits, pushes, pulls, and remotes remain manual.
 - Context presets are local/offline prompt generation only; no external AI API calls are made.
+- Project Intake Wizard blocks slug collisions rather than merging with or overwriting existing project folders.

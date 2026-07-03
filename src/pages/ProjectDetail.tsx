@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { CopyButton } from '../components/CopyButton'
 import { EmptyState } from '../components/EmptyState'
 import { MarkdownView } from '../components/MarkdownView'
 import { PageHeader } from '../components/PageHeader'
@@ -24,6 +25,7 @@ export function ProjectDetail() {
   const projectFile = getFileByCategory(files, project.id, 'PROJECT')
   const design = getFileByCategory(files, project.id, 'DESIGN_RULES')
   const codex = getFileByCategory(files, project.id, 'CODEX_CONTEXT')
+  const kickoff = getFileByCategory(files, project.id, 'KICKOFF_PROMPT')
   const lessons = getFileByCategory(files, project.id, 'LESSONS')
   const decisions = getDecisions(files, projects).filter((decision) => decision.projectId === project.id).slice(0, 4)
 
@@ -121,6 +123,24 @@ export function ProjectDetail() {
           </Card>
         </div>
       </section>
+
+      {kickoff ? (
+        <Card className="gradient-top-line p-5 md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Kickoff Prompt</h2>
+              <p className="mt-1 text-sm text-slate-500">Copy this prompt into Codex to start the first scoped implementation session.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <CopyButton label="Copy Kickoff Prompt" value={kickoff.content} />
+              <Button icon={<ArrowRight size={16} />} onClick={() => navigate(`/files/${kickoff.id}`)}>Open Prompt</Button>
+            </div>
+          </div>
+          <div className="gradient-border-soft mt-4 max-h-72 overflow-auto rounded-lg p-4">
+            <MarkdownView content={kickoff.content} />
+          </div>
+        </Card>
+      ) : null}
 
       <section className="grid gap-5 lg:grid-cols-3">
         <Card className="p-5">
