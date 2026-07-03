@@ -57,7 +57,10 @@ export interface ContextBundleOptions {
   projectId: string
   fileIds: string[]
   promptTemplateId?: string
+  presetId?: string
   currentGoal: string
   activeTask: string
+  issueOrProblem?: string
   acceptanceCriteria: string
+  verificationCommands?: string
 }

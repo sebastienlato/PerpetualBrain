@@ -232,7 +232,29 @@ Backups are portable snapshots. Git remains the recommended primary versioning a
 
 ## Context Bundle Generation
 
-`src/utils/contextBundle.ts` creates the copy-ready Codex bundle from selected project memory, global standards, known issues, acceptance criteria, project Codex instructions, and optional prompt templates.
+`src/utils/contextBundle.ts` creates copy-ready Codex bundles from selected project memory, global standards, known issues, acceptance criteria, project Codex instructions, optional prompt templates, and a workflow preset.
+
+Built-in presets:
+
+- New Project Kickoff
+- Continue Existing Project
+- Phase Implementation
+- Bug Fix
+- Visual Polish Pass
+- Refactor Pass
+- QA / Verification Pass
+- Release Prep
+- Asset Generation Pass
+- Documentation Update
+- Git Commit Summary
+
+The executable preset definitions live in `src/utils/contextBundle.ts` so generation is deterministic and testable. Editable operating guidance lives in:
+
+```text
+brain/global/CONTEXT_PRESETS.md
+```
+
+The generated bundle includes the selected preset, user-entered goal/problem/acceptance/verification fields, selected file content, global preset guidance, and a selected prompt template when present. This is local prompt generation only; PerpetualBrain does not call external AI APIs.
 
 The Context Builder can also export the generated bundle directly to:
 
@@ -240,9 +262,18 @@ The Context Builder can also export the generated bundle directly to:
 brain/projects/<project-slug>/CODEX_CONTEXT.md
 ```
 
+On export, the app appends a concise history entry to:
+
+```text
+brain/projects/<project-slug>/CONTEXT_HISTORY.md
+```
+
+The history entry records timestamp, preset, goal, selected files, acceptance criteria, verification commands, and bundle length. It is appended through the existing `BrainStorage` provider actions and does not overwrite previous history.
+
 ## Known Limitations
 
 - Desktop notarization is not configured yet.
 - Backup import/export is desktop-only.
 - Backup import does not import `.git` history or unsupported binary attachments.
 - Git integration is status/init/copy-only; commits, pushes, pulls, and remotes remain manual.
+- Context presets are local/offline prompt generation only; no external AI API calls are made.

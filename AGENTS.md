@@ -22,6 +22,8 @@ PerpetualBrain is a structured AI context system. Preserve the distinction betwe
 - Run Git with `execFile` or equivalent safe APIs scoped to the active brain root; never build shell command strings from user input.
 - Backup import/export must remain Electron-only behind narrow preload methods. Do not expose generic filesystem APIs to the renderer.
 - Backup ZIP import must reject path traversal and `.git` internals, extract into a new folder, and never overwrite the active brain silently.
+- Context presets are local/offline prompt generation only. Do not add external AI API calls for preset generation.
+- Keep context preset generation and history formatting in `src/utils/contextBundle.ts`; pages should wire inputs and provider actions, not embed large prompt templates.
 - Keep production metadata in `package.json` current for Electron releases: product name, app id, description, author, version, copyright, category, and icon path.
 - Regenerate app icons with `npm run icons:generate` after changing `scripts/generate-icons.py` or icon source assets.
 - Keep parser and bundle logic in `src/utils` instead of embedding it in page components.
@@ -49,6 +51,8 @@ For custom brain folder changes, verify selecting an empty folder, selecting an 
 For Git/versioning changes, verify non-Git folders, Git repo folders, changed Markdown files, copied command text, and browser fallback behavior.
 
 For backup/import changes, verify export ZIP contents, `.git` exclusion, import into a new folder, browser-disabled behavior, and Markdown saves after import.
+
+For context preset changes, verify preset-specific output, CODEX_CONTEXT.md export, CONTEXT_HISTORY.md append, copy behavior, search visibility, and mobile no-overflow.
 
 ## Scope
 

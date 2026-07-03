@@ -9,35 +9,60 @@ import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
 import type { ContextBundleOptions } from '../types/brain'
 import { buildProjects, getFileByCategory, getPromptTemplates } from '../utils/brain'
-import { generateContextBundle } from '../utils/contextBundle'
+import { appendContextHistory, buildContextHistoryEntry, contextPresets, generateContextBundle, getContextPreset } from '../utils/contextBundle'
 
 export function ContextBuilder() {
   const { files, projects, reloadFromSource, saveFile, createFile } = useBrain()
   const prompts = useMemo(() => getPromptTemplates(files), [files])
   const [exportStatus, setExportStatus] = useState<string>()
   const defaultProjectId = projects[0]?.id ?? ''
+  const defaultPreset = contextPresets[1]
   const [options, setOptions] = useState<ContextBundleOptions>({
     projectId: defaultProjectId,
     fileIds: [],
     promptTemplateId: prompts[0]?.id,
-    currentGoal: 'Implement the next scoped phase while preserving existing project constraints.',
-    activeTask: 'Read the selected context, make the smallest coherent change, and verify it.',
-    acceptanceCriteria: '- Build succeeds.\n- Primary workflow is verified.\n- Files changed and limitations are reported.',
+    presetId: defaultPreset.id,
+    currentGoal: defaultPreset.defaultGoal,
+    activeTask: defaultPreset.defaultTask,
+    issueOrProblem: '',
+    acceptanceCriteria: defaultPreset.defaultAcceptanceCriteria,
+    verificationCommands: defaultPreset.defaultVerificationCommands,
   })
 
+  const selectedPreset = getContextPreset(options.presetId)
   const selectedProject = projects.find((project) => project.id === options.projectId)
   const projectFiles = files.filter((file) => file.projectId === options.projectId)
-  const globalDefaults = files.filter((file) => ['CODING_STANDARDS.md', 'DESIGN_STANDARDS.md', 'CODEX_WORKFLOW.md'].includes(file.name))
+  const globalDefaults = files.filter((file) => ['CODING_STANDARDS.md', 'DESIGN_STANDARDS.md', 'CODEX_WORKFLOW.md', 'CONTEXT_PRESETS.md'].includes(file.name))
   const relevantFiles = [...projectFiles, ...globalDefaults]
-  const selectedIds = options.fileIds.length ? options.fileIds : relevantFiles.filter((file) => ['PROJECT.md', 'ARCHITECTURE.md', 'DESIGN_RULES.md', 'CODEX_CONTEXT.md', 'DECISIONS.md', 'LESSONS.md', 'CODING_STANDARDS.md', 'DESIGN_STANDARDS.md'].includes(file.name)).map((file) => file.id)
+  const selectedIds = options.fileIds.length ? options.fileIds : relevantFiles.filter((file) => ['PROJECT.md', 'ARCHITECTURE.md', 'DESIGN_RULES.md', 'CODEX_CONTEXT.md', 'DECISIONS.md', 'LESSONS.md', 'TODO.md', 'CODING_STANDARDS.md', 'DESIGN_STANDARDS.md', 'CODEX_WORKFLOW.md', 'CONTEXT_PRESETS.md'].includes(file.name)).map((file) => file.id)
   const bundle = generateContextBundle({ ...options, fileIds: selectedIds }, files, projects, prompts)
 
   useEffect(() => {
     void reloadFromSource()
   }, [reloadFromSource])
 
+  useEffect(() => {
+    setOptions((current) => ({
+      ...current,
+      projectId: current.projectId || defaultProjectId,
+      promptTemplateId: current.promptTemplateId || prompts[0]?.id,
+    }))
+  }, [defaultProjectId, prompts])
+
   function update<K extends keyof ContextBundleOptions>(key: K, value: ContextBundleOptions[K]) {
     setOptions((current) => ({ ...current, [key]: value }))
+  }
+
+  function selectPreset(presetId: string) {
+    const preset = getContextPreset(presetId)
+    setOptions((current) => ({
+      ...current,
+      presetId,
+      currentGoal: preset.defaultGoal,
+      activeTask: preset.defaultTask,
+      acceptanceCriteria: preset.defaultAcceptanceCriteria,
+      verificationCommands: preset.defaultVerificationCommands,
+    }))
   }
 
   if (projects.length === 0) {
@@ -53,8 +78,10 @@ export function ContextBuilder() {
       const latestFiles = await reloadFromSource()
       const latestProjects = buildProjects(latestFiles)
       const latestPrompts = getPromptTemplates(latestFiles)
-      const latestBundle = generateContextBundle({ ...options, fileIds: selectedIds }, latestFiles, latestProjects, latestPrompts)
+      const latestOptions = { ...options, fileIds: selectedIds }
+      const latestBundle = generateContextBundle(latestOptions, latestFiles, latestProjects, latestPrompts)
       const existing = getFileByCategory(latestFiles, selectedProject.id, 'CODEX_CONTEXT')
+      const existingHistory = getFileByCategory(latestFiles, selectedProject.id, 'CONTEXT_HISTORY')
 
       if (existing) {
         await saveFile({ ...existing, content: latestBundle })
@@ -69,7 +96,25 @@ export function ContextBuilder() {
         })
       }
 
-      setExportStatus('Exported CODEX_CONTEXT.md to disk.')
+      const latestProjectFiles = latestFiles.filter((file) => selectedIds.includes(file.id))
+      const historyEntry = buildContextHistoryEntry(latestOptions, getContextPreset(options.presetId), latestBundle, latestProjectFiles)
+      const historyContent = appendContextHistory(existingHistory?.content, historyEntry)
+
+      if (existingHistory) {
+        await saveFile({ ...existingHistory, content: historyContent })
+      } else {
+        await createFile({
+          path: `brain/projects/${selectedProject.id}/CONTEXT_HISTORY.md`,
+          title: `Context History for ${selectedProject.name}`,
+          kind: 'project',
+          category: 'CONTEXT_HISTORY',
+          projectId: selectedProject.id,
+          content: historyContent,
+        })
+      }
+
+      await reloadFromSource()
+      setExportStatus('Exported CODEX_CONTEXT.md and appended CONTEXT_HISTORY.md.')
       window.setTimeout(() => setExportStatus(undefined), 1800)
     } catch (error) {
       setExportStatus(error instanceof Error ? error.message : 'Unable to export CODEX_CONTEXT.md.')
@@ -81,7 +126,7 @@ export function ContextBuilder() {
       <PageHeader
         eyebrow="Context Builder"
         title="Generate Codex-ready project bundles"
-        description="Select project memory, standards, decisions, lessons, and a prompt template, then copy a clean structured context bundle into Codex."
+        description="Choose a workflow preset, select project memory, and generate a structured prompt bundle for Codex."
         actions={
           <>
             <Button icon={<Save size={16} />} onClick={() => void exportCodexContext()}>Export CODEX_CONTEXT.md</Button>
@@ -115,6 +160,20 @@ export function ContextBuilder() {
                 </select>
               </label>
               <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
+                Workflow Preset
+                <select
+                  className="dark-input gradient-focus min-h-11 min-w-0 rounded-lg px-3 text-white"
+                  value={selectedPreset.id}
+                  onChange={(event) => selectPreset(event.target.value)}
+                >
+                  {contextPresets.map((preset) => <option key={preset.id} value={preset.id}>{preset.title}</option>)}
+                </select>
+              </label>
+              <div className="gradient-border-soft rounded-lg p-4">
+                <p className="text-sm font-semibold text-white">{selectedPreset.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{selectedPreset.description}</p>
+              </div>
+              <label className="grid min-w-0 gap-2 text-sm font-medium text-slate-300">
                 Prompt Template
                 <select
                   className="dark-input gradient-focus min-h-11 min-w-0 rounded-lg px-3 text-white"
@@ -126,7 +185,9 @@ export function ContextBuilder() {
               </label>
               <TextArea label="Current Goal" value={options.currentGoal} onChange={(value) => update('currentGoal', value)} />
               <TextArea label="Active Task" value={options.activeTask} onChange={(value) => update('activeTask', value)} />
+              <TextArea label={selectedPreset.issueLabel || 'Issue / Problem / Notes'} value={options.issueOrProblem ?? ''} onChange={(value) => update('issueOrProblem', value)} rows={4} />
               <TextArea label="Acceptance Criteria" value={options.acceptanceCriteria} onChange={(value) => update('acceptanceCriteria', value)} rows={5} />
+              <TextArea label="Verification Commands" value={options.verificationCommands ?? ''} onChange={(value) => update('verificationCommands', value)} rows={5} />
             </div>
           </Card>
 
@@ -152,6 +213,7 @@ export function ContextBuilder() {
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-white">Codex Context Bundle</h2>
               <p className="text-xs text-slate-500">{bundle.length.toLocaleString()} characters</p>
+              <p className="mt-1 text-xs text-cyan-100/80">{selectedPreset.title}</p>
             </div>
             <CopyButton label="Copy" value={bundle} />
           </div>
