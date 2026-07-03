@@ -20,6 +20,8 @@ PerpetualBrain is a structured AI context system. Preserve the distinction betwe
 - When changing folder-selection behavior, preserve safe fallback to the default brain folder if the saved path is missing.
 - Git integration must remain lightweight and local: status/init only, no automatic commits, pushes, pulls, remotes, or arbitrary Git arguments.
 - Run Git with `execFile` or equivalent safe APIs scoped to the active brain root; never build shell command strings from user input.
+- Backup import/export must remain Electron-only behind narrow preload methods. Do not expose generic filesystem APIs to the renderer.
+- Backup ZIP import must reject path traversal and `.git` internals, extract into a new folder, and never overwrite the active brain silently.
 - Keep production metadata in `package.json` current for Electron releases: product name, app id, description, author, version, copyright, category, and icon path.
 - Regenerate app icons with `npm run icons:generate` after changing `scripts/generate-icons.py` or icon source assets.
 - Keep parser and bundle logic in `src/utils` instead of embedding it in page components.
@@ -45,6 +47,8 @@ For release packaging changes, run `npm run dist:mac` and inspect the resulting 
 For custom brain folder changes, verify selecting an empty folder, selecting an existing brain folder, resetting to default, and relaunching Electron with the saved folder.
 
 For Git/versioning changes, verify non-Git folders, Git repo folders, changed Markdown files, copied command text, and browser fallback behavior.
+
+For backup/import changes, verify export ZIP contents, `.git` exclusion, import into a new folder, browser-disabled behavior, and Markdown saves after import.
 
 ## Scope
 

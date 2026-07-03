@@ -13,6 +13,7 @@ import {
   resolveConfiguredBrainRoot,
   saveBrainFolderSettings,
 } from '../server/utils/brainFolder.js'
+import { backupTimestamp, createBrainBackupZip, importBrainBackupZip, inspectBrainBackupZip } from '../server/utils/brainBackup.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const apiPort = Number(process.env.PERPETUAL_BRAIN_API_PORT || 3717)
@@ -29,6 +30,15 @@ async function ensureDirectoryExists(directory: string) {
     await stat(directory)
   } catch {
     await mkdir(directory, { recursive: true })
+  }
+}
+
+async function pathExists(targetPath: string) {
+  try {
+    await stat(targetPath)
+    return true
+  } catch {
+    return false
   }
 }
 
@@ -96,6 +106,120 @@ function brainFolderResult(message?: string) {
     brainRoot: activeBrainRoot,
     source: activeBrainRootSource,
     message,
+  }
+}
+
+function backupResult(message?: string) {
+  return {
+    ...brainFolderResult(),
+    message,
+  }
+}
+
+async function nextImportBrainRoot() {
+  const importsRoot = path.join(electronApp.getPath('userData'), 'brain-imports')
+  await mkdir(importsRoot, { recursive: true })
+  const baseName = `PerpetualBrain-import-${backupTimestamp()}`
+
+  for (let index = 0; index < 100; index += 1) {
+    const candidate = path.join(importsRoot, index === 0 ? baseName : `${baseName}-${index}`)
+    if (!(await pathExists(candidate))) {
+      return candidate
+    }
+  }
+
+  throw new Error('Unable to create a unique import folder.')
+}
+
+async function exportBrainBackup() {
+  const defaultPath = path.join(electronApp.getPath('downloads'), `PerpetualBrain-backup-${backupTimestamp()}.zip`)
+  const saveOptions: Electron.SaveDialogOptions = {
+    title: 'Export PerpetualBrain Backup',
+    defaultPath,
+    filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+  }
+  const result = mainWindow ? await dialog.showSaveDialog(mainWindow, saveOptions) : await dialog.showSaveDialog(saveOptions)
+
+  if (result.canceled || !result.filePath) {
+    return { ...backupResult('Backup export canceled.'), canceled: true }
+  }
+
+  const summary = await createBrainBackupZip(activeBrainRoot, result.filePath)
+  return {
+    ...backupResult(`Exported ${summary.exportedFiles} brain files to ${summary.outputPath}.`),
+    backupPath: summary.outputPath,
+    exportedFiles: summary.exportedFiles,
+    skippedFiles: summary.skippedFiles,
+  }
+}
+
+async function importBrainBackup() {
+  const openOptions: Electron.OpenDialogOptions = {
+    title: 'Import PerpetualBrain Backup',
+    message: 'Choose a PerpetualBrain backup ZIP.',
+    properties: ['openFile'],
+    filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+  }
+  const result = mainWindow ? await dialog.showOpenDialog(mainWindow, openOptions) : await dialog.showOpenDialog(openOptions)
+
+  if (result.canceled || !result.filePaths[0]) {
+    return { ...backupResult('Backup import canceled.'), canceled: true }
+  }
+
+  const zipPath = result.filePaths[0]
+  const inspection = await inspectBrainBackupZip(zipPath)
+  if (inspection.validEntries.length === 0) {
+    const message = 'Backup ZIP does not contain supported brain files.'
+    const messageOptions: Electron.MessageBoxOptions = {
+      type: 'error',
+      message,
+      detail: inspection.rejectedEntries.length ? `Rejected entries: ${inspection.rejectedEntries.slice(0, 8).join(', ')}` : undefined,
+    }
+    if (mainWindow) {
+      await dialog.showMessageBox(mainWindow, messageOptions)
+    } else {
+      await dialog.showMessageBox(messageOptions)
+    }
+    return { ...backupResult(message), canceled: true, rejectedEntries: inspection.rejectedEntries, unsupportedEntries: inspection.unsupportedEntries }
+  }
+
+  const destinationRoot = await nextImportBrainRoot()
+  const confirmationOptions: Electron.MessageBoxOptions = {
+    type: 'question',
+    buttons: ['Import and Switch', 'Cancel'],
+    defaultId: 0,
+    cancelId: 1,
+    message: 'Import this brain backup?',
+    detail: [
+      `PerpetualBrain will extract ${inspection.validEntries.length} supported files into a new folder:`,
+      destinationRoot,
+      '',
+      'The current brain folder will not be overwritten.',
+      inspection.unsupportedEntries.length ? `${inspection.unsupportedEntries.length} unsupported files will be ignored.` : '',
+      inspection.rejectedEntries.length ? `${inspection.rejectedEntries.length} unsafe entries will be rejected.` : '',
+    ].filter(Boolean).join('\n'),
+  }
+  const confirmation = mainWindow
+    ? await dialog.showMessageBox(mainWindow, confirmationOptions)
+    : await dialog.showMessageBox(confirmationOptions)
+
+  if (confirmation.response !== 0) {
+    return { ...backupResult('Backup import canceled.'), canceled: true }
+  }
+
+  const summary = await importBrainBackupZip(zipPath, destinationRoot)
+  await saveBrainFolderSettings(settingsPath(), { brainRoot: summary.destinationRoot })
+  activeBrainRoot = summary.destinationRoot
+  activeBrainRootSource = 'configured'
+  activeBrainRootMessage = undefined
+
+  return {
+    ...backupResult(`Imported ${summary.importedFiles} files and switched to the imported brain folder.`),
+    brainRoot: activeBrainRoot,
+    source: activeBrainRootSource,
+    importedFiles: summary.importedFiles,
+    unsupportedEntries: summary.unsupportedEntries,
+    rejectedEntries: summary.rejectedEntries,
   }
 }
 
@@ -186,6 +310,8 @@ function installIpcHandlers() {
   ipcMain.handle('brain-folder:choose', () => chooseBrainFolder())
   ipcMain.handle('brain-folder:reset-default', () => resetBrainFolder())
   ipcMain.handle('brain-folder:get', () => brainFolderResult(activeBrainRootMessage))
+  ipcMain.handle('brain-backup:export', () => exportBrainBackup())
+  ipcMain.handle('brain-backup:import', () => importBrainBackup())
 }
 
 function createMainWindow() {

@@ -8,4 +8,6 @@ contextBridge.exposeInMainWorld('perpetualBrainDesktop', {
   chooseBrainFolder: () => ipcRenderer.invoke('brain-folder:choose'),
   resetBrainFolder: () => ipcRenderer.invoke('brain-folder:reset-default'),
   getBrainFolder: () => ipcRenderer.invoke('brain-folder:get'),
+  exportBrainBackup: () => ipcRenderer.invoke('brain-backup:export'),
+  importBrainBackup: () => ipcRenderer.invoke('brain-backup:import'),
 })

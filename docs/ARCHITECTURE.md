@@ -18,7 +18,7 @@ In Electron:
 
 1. `electron/main.ts` resolves the active brain root.
 2. Electron starts `createApiApp({ getBrainRoot })` on `127.0.0.1`.
-3. `electron/preload.ts` exposes only the API base URL and platform metadata.
+3. `electron/preload.cjs` exposes only the API base URL, platform metadata, folder selection actions, and backup import/export actions.
 4. The renderer uses the same `ApiBrainStorage` and `/api` routes as browser mode.
 
 ## Key Directories
@@ -199,6 +199,37 @@ The app does not run:
 
 Settings shows branch/status information and copies suggested commit commands for the user to run manually. If Git is unavailable, the API returns a graceful status object instead of throwing to the renderer. If the active folder is not a Git repo, the app can initialize one after explicit confirmation and creates `.gitignore` only when missing.
 
+## Backup Boundary
+
+`server/utils/brainBackup.ts` owns ZIP backup filtering, archive creation, ZIP entry validation, and safe extraction. Electron main owns native dialogs and active brain switching.
+
+Preload exposes only these backup methods:
+
+- `exportBrainBackup()`
+- `importBrainBackup()`
+
+The renderer does not receive generic filesystem APIs or arbitrary path access.
+
+Export rules:
+
+- Walk only the active brain root.
+- Include `.md`, `.txt`, `.json`, and `.gitignore`.
+- Exclude `.git`, `node_modules`, `.DS_Store`, temp files, unsupported binary files, and files over the per-file backup limit.
+- Create the ZIP at the path selected by the native save dialog.
+
+Import rules:
+
+- Load a user-selected ZIP from the native open dialog.
+- Validate entry names before extraction.
+- Reject zip-slip/path traversal, absolute paths, Windows drive paths, null bytes, and `.git` internals.
+- Import only `.md`, `.txt`, `.json`, and `.gitignore`.
+- Ignore unsupported files and report them in the result.
+- Extract into a new timestamped folder under `~/Library/Application Support/PerpetualBrain/brain-imports/`.
+- Switch the active brain root only after user confirmation.
+- Never overwrite the current active brain folder silently.
+
+Backups are portable snapshots. Git remains the recommended primary versioning and history workflow.
+
 ## Context Bundle Generation
 
 `src/utils/contextBundle.ts` creates the copy-ready Codex bundle from selected project memory, global standards, known issues, acceptance criteria, project Codex instructions, and optional prompt templates.
@@ -212,4 +243,6 @@ brain/projects/<project-slug>/CODEX_CONTEXT.md
 ## Known Limitations
 
 - Desktop notarization is not configured yet.
-- Packaged builds use the default Application Support brain folder; custom brain-folder selection is planned for a later phase.
+- Backup import/export is desktop-only.
+- Backup import does not import `.git` history or unsupported binary attachments.
+- Git integration is status/init/copy-only; commits, pushes, pulls, and remotes remain manual.

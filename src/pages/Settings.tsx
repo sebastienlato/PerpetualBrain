@@ -1,4 +1,4 @@
-import { FolderOpen, GitBranch, GitCommit, MonitorCog, RefreshCw, RotateCcw } from 'lucide-react'
+import { Archive, Download, FolderOpen, GitBranch, GitCommit, MonitorCog, RefreshCw, RotateCcw, Upload } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
@@ -11,6 +11,9 @@ import type { GitStatusResult } from '../types/git'
 export function Settings() {
   const { files, resetToSeed, reloadFromSource, storageMode, storageMessage, activeBrainPath } = useBrain()
   const [status, setStatus] = useState<string>()
+  const [backupStatus, setBackupStatus] = useState<string>()
+  const [backupError, setBackupError] = useState<string>()
+  const [backupLoading, setBackupLoading] = useState<'export' | 'import'>()
   const [gitStatus, setGitStatus] = useState<GitStatusResult>()
   const [gitStatusError, setGitStatusError] = useState<string>()
   const [gitLastCheckedAt, setGitLastCheckedAt] = useState<string>()
@@ -111,6 +114,58 @@ export function Settings() {
     }
   }
 
+  async function exportBackup() {
+    if (!desktopRuntime?.exportBrainBackup) {
+      setBackupError('Backup import/export is available in the desktop app.')
+      setBackupStatus(undefined)
+      return
+    }
+
+    setBackupLoading('export')
+    try {
+      const result = await desktopRuntime.exportBrainBackup()
+      if (result.canceled) {
+        setBackupStatus(result.message || 'Backup export canceled.')
+        setBackupError(undefined)
+        return
+      }
+      setBackupStatus(result.message || `Exported ${result.exportedFiles ?? 0} brain files.`)
+      setBackupError(undefined)
+    } catch (error) {
+      setBackupStatus(undefined)
+      setBackupError(error instanceof Error ? error.message : 'Unable to export brain backup.')
+    } finally {
+      setBackupLoading(undefined)
+    }
+  }
+
+  async function importBackup() {
+    if (!desktopRuntime?.importBrainBackup) {
+      setBackupError('Backup import/export is available in the desktop app.')
+      setBackupStatus(undefined)
+      return
+    }
+
+    setBackupLoading('import')
+    try {
+      const result = await desktopRuntime.importBrainBackup()
+      if (result.canceled) {
+        setBackupStatus(result.message || 'Backup import canceled.')
+        setBackupError(undefined)
+        return
+      }
+      await reloadFromSource()
+      await refreshGitStatus()
+      setBackupStatus(result.message || `Imported ${result.importedFiles ?? 0} brain files.`)
+      setBackupError(undefined)
+    } catch (error) {
+      setBackupStatus(undefined)
+      setBackupError(error instanceof Error ? error.message : 'Unable to import brain backup.')
+    } finally {
+      setBackupLoading(undefined)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader eyebrow="Settings" title="Local brain storage" description="PerpetualBrain prefers the local file API and falls back to browser storage when the backend is unavailable." />
@@ -182,6 +237,58 @@ export function Settings() {
         </div>
         {!desktopRuntime ? <p className="mt-3 text-sm text-slate-500">Custom folder selection is available in the desktop app.</p> : null}
         {status ? <p className="mt-3 text-sm text-teal-100">{status}</p> : null}
+      </Card>
+
+      <Card className="p-5 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="gradient-border-soft grid size-10 place-items-center rounded-lg text-cyan-200">
+              <Archive size={18} />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Brain Backup</h2>
+              <p className="text-xs text-slate-500">Export or import portable brain ZIP archives.</p>
+            </div>
+          </div>
+          <Badge tone={desktopRuntime ? 'cyan' : 'slate'}>{desktopRuntime ? 'Desktop only' : 'Unavailable in browser'}</Badge>
+        </div>
+
+        <div className="gradient-border-soft mt-4 rounded-lg p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Active brain path</p>
+          <p className="mt-2 break-all font-mono text-xs leading-5 text-slate-300">{activeBrainPath || 'Unknown'}</p>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="gradient-border-soft rounded-lg p-4">
+            <p className="text-sm font-semibold text-white">Export backup</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Create a ZIP with supported files from the active brain folder. Git internals, temporary files, and unsupported binaries are excluded.</p>
+          </div>
+          <div className="gradient-border-soft rounded-lg p-4">
+            <p className="text-sm font-semibold text-white">Import backup</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Validate a ZIP, extract supported files into a new timestamped folder, then switch to it after confirmation.</p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <Button
+            icon={<Download size={16} />}
+            disabled={!desktopRuntime?.exportBrainBackup || backupLoading !== undefined}
+            onClick={() => void exportBackup()}
+          >
+            {backupLoading === 'export' ? 'Exporting' : 'Export Brain Backup'}
+          </Button>
+          <Button
+            icon={<Upload size={16} />}
+            disabled={!desktopRuntime?.importBrainBackup || backupLoading !== undefined}
+            onClick={() => void importBackup()}
+          >
+            {backupLoading === 'import' ? 'Importing' : 'Import Brain Backup'}
+          </Button>
+        </div>
+
+        {!desktopRuntime ? <p className="mt-3 text-sm text-slate-500">Backup import/export is available in the desktop app.</p> : null}
+        {backupStatus ? <p className="mt-3 text-sm leading-6 text-teal-100">{backupStatus}</p> : null}
+        {backupError ? <p className="mt-3 text-sm leading-6 text-rose-100">{backupError}</p> : null}
       </Card>
 
       <Card className="p-5 md:p-6">
