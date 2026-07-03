@@ -4,6 +4,7 @@ declare global {
   interface Window {
     perpetualBrainDesktop?: {
       apiBaseUrl: string
+      apiToken?: string
       platform: string
       chooseBrainFolder(): Promise<BrainFolderSelectionResult>
       resetBrainFolder(): Promise<BrainFolderSelectionResult>

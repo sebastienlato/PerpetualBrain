@@ -1,4 +1,5 @@
 import { app as electronApp, BrowserWindow, Menu, dialog, ipcMain, shell, type MenuItemConstructorOptions } from 'electron'
+import { randomBytes } from 'node:crypto'
 import { mkdir, stat } from 'node:fs/promises'
 import http from 'node:http'
 import path from 'node:path'
@@ -18,6 +19,8 @@ import { backupTimestamp, createBrainBackupZip, importBrainBackupZip, inspectBra
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const apiPort = Number(process.env.PERPETUAL_BRAIN_API_PORT || 3717)
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
+const apiToken = randomBytes(32).toString('hex')
+const apiTokenArg = `--perpetual-brain-token=${apiToken}`
 
 let mainWindow: BrowserWindow | undefined
 let apiServer: http.Server | undefined
@@ -78,6 +81,7 @@ async function startApiServer() {
     getBrainRoot: () => activeBrainRoot,
     getBrainRootSource: () => activeBrainRootSource,
     getBrainRootMessage: () => activeBrainRootMessage,
+    getAccessToken: () => apiToken,
   })
 
   await new Promise<void>((resolve, reject) => {
@@ -327,6 +331,7 @@ function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      additionalArguments: [apiTokenArg],
       preload: path.join(__dirname, 'preload.cjs'),
     },
   })

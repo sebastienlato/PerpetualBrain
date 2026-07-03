@@ -265,6 +265,8 @@ All write paths are validated server-side. The API only permits `.md` files insi
 
 Git routes are also scoped to the active brain root and use `execFile`, not shell execution.
 
+The API is not open to arbitrary web pages. Cross-origin access is limited to the Vite dev origin (and the packaged desktop renderer), so a website you visit in a browser cannot read or modify your brain files through the local API. In the packaged desktop app, the renderer and API additionally share a per-launch access token: the Electron main process generates it, injects it into the renderer through the preload bridge, and the server rejects any request without it. Dev-server mode configures no token, so `npm run dev` is unaffected.
+
 ## What Is Included
 
 - Dashboard with active projects, recent files, pinned prompts, recent decisions, and bundle entry points
@@ -315,6 +317,6 @@ brain/
 
 ## Known Limitation
 
-This is a local development app. The file API is intentionally bound to `127.0.0.1` and is meant for trusted local use against this repo’s `/brain` directory.
+This is a local development app. The file API is intentionally bound to `127.0.0.1`, restricts cross-origin access to the Vite dev origin and the packaged desktop renderer, and additionally requires a per-launch access token in the packaged desktop app. It is meant for trusted local use against this repo’s `/brain` directory.
 
 macOS notarization is not configured yet. Git integration is intentionally lightweight: it shows status, can initialize a local repo, and copies commit commands, but does not commit, push, pull, or manage remotes. Backup import/export is desktop-only and intentionally limited to safe text files; it does not import `.git` history. Context presets and Project Intake Wizard generation are offline prompt/template generation only and do not call external AI APIs. The wizard blocks project slug collisions instead of merging or overwriting existing project folders.

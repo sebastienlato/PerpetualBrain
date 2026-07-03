@@ -1,4 +1,5 @@
 import type { BrainFile } from '../types/brain'
+import { API_TOKEN_HEADER } from './apiConfig'
 import type { BrainStorage, CreateBrainFileInput, CreateProjectInput, CreateProjectResult } from './BrainStorage'
 
 interface TreeResponse {
@@ -11,13 +12,19 @@ interface FileResponse {
 
 export class ApiBrainStorage implements BrainStorage {
   private readonly baseUrl: string
+  private readonly token?: string
 
-  constructor(baseUrl = '') {
+  constructor(baseUrl = '', token?: string) {
     this.baseUrl = baseUrl
+    this.token = token
+  }
+
+  private authHeaders(): Record<string, string> {
+    return this.token ? { [API_TOKEN_HEADER]: this.token } : {}
   }
 
   async health() {
-    const response = await fetch(`${this.baseUrl}/api/health`)
+    const response = await fetch(`${this.baseUrl}/api/health`, { headers: this.authHeaders() })
     if (!response.ok) {
       throw new Error('File persistence API is unavailable.')
     }
@@ -75,6 +82,7 @@ export class ApiBrainStorage implements BrainStorage {
       ...init,
       headers: {
         'Content-Type': 'application/json',
+        ...this.authHeaders(),
         ...init?.headers,
       },
     })

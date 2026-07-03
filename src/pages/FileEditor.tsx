@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle, Eye, FileText, PenLine, Save, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -20,15 +20,26 @@ export function FileEditor() {
   const [saveError, setSaveError] = useState<string>()
 
   const isDirty = useMemo(() => file ? draft !== file.content : false, [draft, file])
+  const lastSynced = useRef<{ id?: string; content?: string }>({ id: file?.id, content: file?.content })
 
   useEffect(() => {
-    setDraft(file?.content ?? '')
-    setSaveStatus('idle')
-    setSaveError(undefined)
-  }, [file?.id, file?.content])
+    if (!file) {
+      return
+    }
+    const switchedFile = lastSynced.current.id !== file.id
+    const hasUnsavedEdits = lastSynced.current.content !== undefined && draft !== lastSynced.current.content
+    // Load the stored content when opening a different file, or when the same file changed on
+    // disk and there is nothing unsaved to lose. Never overwrite pending edits underneath the user.
+    if (switchedFile || !hasUnsavedEdits) {
+      setDraft(file.content)
+      setSaveStatus('idle')
+      setSaveError(undefined)
+    }
+    lastSynced.current = { id: file.id, content: file.content }
+  }, [file, draft])
 
   if (!file) {
-    return <EmptyState title="File not found" body="The selected Markdown file does not exist in local storage." />
+    return <EmptyState title="File not found" body="The selected Markdown file could not be found in the active brain." />
   }
 
   const currentFile = file

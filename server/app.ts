@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import cors from 'cors'
 import express from 'express'
 import { z } from 'zod'
@@ -5,14 +6,36 @@ import { FileSystemBrainStorage } from './storage/FileSystemBrainStorage.js'
 import { BrainPathError } from './utils/brainPath.js'
 import { getGitDiffSummary, getGitStatus, initializeGitRepo } from './utils/gitStatus.js'
 
+export const API_TOKEN_HEADER = 'x-perpetual-brain-token'
+
+const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
+
 export interface CreateApiAppOptions {
   brainRoot?: string
   getBrainRoot?: () => string
   getBrainRootSource?: () => string
   getBrainRootMessage?: () => string | undefined
+  getAccessToken?: () => string | undefined
+  allowedOrigins?: string[]
 }
 
-export function createApiApp({ brainRoot, getBrainRoot, getBrainRootSource, getBrainRootMessage }: CreateApiAppOptions) {
+function tokensMatch(provided: string, expected: string) {
+  const providedBuffer = Buffer.from(provided)
+  const expectedBuffer = Buffer.from(expected)
+  if (providedBuffer.length !== expectedBuffer.length) {
+    return false
+  }
+  return timingSafeEqual(providedBuffer, expectedBuffer)
+}
+
+export function createApiApp({
+  brainRoot,
+  getBrainRoot,
+  getBrainRootSource,
+  getBrainRootMessage,
+  getAccessToken,
+  allowedOrigins = DEFAULT_ALLOWED_ORIGINS,
+}: CreateApiAppOptions) {
   const app = express()
   const resolveBrainRoot = getBrainRoot ?? (() => {
     if (!brainRoot) {
@@ -21,8 +44,47 @@ export function createApiApp({ brainRoot, getBrainRoot, getBrainRootSource, getB
     return brainRoot
   })
   const storage = () => new FileSystemBrainStorage(resolveBrainRoot())
+  const allowedOriginSet = new Set(allowedOrigins)
 
-  app.use(cors({ origin: true }))
+  app.use(cors({
+    credentials: false,
+    origin(origin, callback) {
+      // Non-browser callers (curl) and same-origin requests omit Origin; allow them.
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+      if (allowedOriginSet.has(origin)) {
+        callback(null, true)
+        return
+      }
+      // The packaged desktop renderer loads over file:// and sends an opaque origin.
+      // Only trust it when an access token is also required, since the token — not the
+      // origin — is the real gate against untrusted pages.
+      if ((origin === 'null' || origin.startsWith('file://')) && Boolean(getAccessToken?.())) {
+        callback(null, true)
+        return
+      }
+      callback(null, false)
+    },
+  }))
+
+  // Reject any request that lacks the desktop access token. Dev-server mode configures no
+  // token, so this gate is a no-op there and browser/dev workflows are unaffected.
+  app.use((req, res, next) => {
+    const expected = getAccessToken?.()
+    if (!expected) {
+      next()
+      return
+    }
+    const provided = req.header(API_TOKEN_HEADER) ?? ''
+    if (tokensMatch(provided, expected)) {
+      next()
+      return
+    }
+    res.status(403).json({ error: 'Missing or invalid API token.' })
+  })
+
   app.use(express.json({ limit: '1mb', type: 'application/json' }))
 
   const pathQuerySchema = z.object({

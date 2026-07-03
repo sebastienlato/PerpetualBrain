@@ -6,6 +6,7 @@ import { Card } from '../components/Card'
 import { CopyButton } from '../components/CopyButton'
 import { PageHeader } from '../components/PageHeader'
 import { useBrain } from '../hooks/useBrain'
+import { apiAuthHeaders, apiBaseUrl } from '../storage/apiConfig'
 import type { GitStatusResult } from '../types/git'
 
 export function Settings() {
@@ -31,7 +32,7 @@ export function Settings() {
 
     setGitLoading(true)
     try {
-      const response = await fetch('/api/git/status')
+      const response = await fetch(`${apiBaseUrl}/api/git/status`, { headers: apiAuthHeaders() })
       if (!response.ok) {
         throw new Error(`Git status failed with ${response.status}.`)
       }
@@ -99,7 +100,7 @@ export function Settings() {
 
     setGitLoading(true)
     try {
-      const response = await fetch('/api/git/init', { method: 'POST' })
+      const response = await fetch(`${apiBaseUrl}/api/git/init`, { method: 'POST', headers: apiAuthHeaders() })
       if (!response.ok) {
         throw new Error(`Git init failed with ${response.status}.`)
       }
